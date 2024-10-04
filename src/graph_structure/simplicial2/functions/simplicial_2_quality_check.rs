@@ -1,7 +1,7 @@
 use anyhow::Result;
 
-pub use crate::simplicial2::IterHalfEdge2;
-pub use crate::simplicial2::Simplicial2;
+pub use super::super::IterHalfEdge2;
+pub use super::super::Simplicial2;
 
 /// Checks halfedge validity
 pub fn halfedge_is_valid(halfedge: &IterHalfEdge2) -> bool {

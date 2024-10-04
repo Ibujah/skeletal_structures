@@ -2,7 +2,7 @@ use super::IterFace;
 use super::IterVertex;
 use super::ManifoldTriangularMesh3D;
 
-use crate::simplicial2::IterHalfEdge2;
+use crate::graph_structure::simplicial2::IterHalfEdge2;
 
 #[derive(Copy, Clone)]
 /// Halfedge iterator

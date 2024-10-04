@@ -6,7 +6,7 @@ use super::IterHalfEdge;
 use super::IterVertex;
 use super::ManifoldTriangularMesh3D;
 
-use crate::simplicial2::IterTriangle2;
+use crate::graph_structure::simplicial2::IterTriangle2;
 
 #[derive(Copy, Clone)]
 /// Triangle iterator

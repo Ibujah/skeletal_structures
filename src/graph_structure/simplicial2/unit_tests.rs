@@ -2,8 +2,8 @@
 mod simplicial2_test {
     use anyhow::Result;
 
-    use crate::simplicial2::simplicial_is_valid;
-    use crate::simplicial2::Simplicial2;
+    use super::super::functions::simplicial_is_valid;
+    use super::super::structure::Simplicial2;
 
     #[test]
     fn insert_test() -> Result<()> {

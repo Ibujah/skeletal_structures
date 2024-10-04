@@ -1,7 +1,7 @@
 use anyhow::Result;
 use nalgebra::base::*;
 
-use crate::simplicial2::Simplicial2;
+use crate::graph_structure::simplicial2::Simplicial2;
 
 use super::property_set::PropertySet;
 

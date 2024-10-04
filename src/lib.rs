@@ -8,5 +8,5 @@ pub mod mesh3d;
 // /// Skeleton 3D object and operations
 // pub mod skeleton3d;
 
-/// Simplicial 2D object and operations
-pub mod simplicial2;
+/// Graph structure for mesh and skeleton objects
+pub mod graph_structure;
