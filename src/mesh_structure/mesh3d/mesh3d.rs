@@ -2,7 +2,7 @@ use anyhow::Result;
 use nalgebra::base::*;
 use ply_rs::ply::{Property, PropertyType, ScalarType};
 
-use super::super::super::property_set::PropertySet;
+use crate::mesh_structure::property_set::PropertySet;
 
 #[derive(Clone)]
 /// Mesh3D is a struct that represents a mesh in three-dimensional space.
