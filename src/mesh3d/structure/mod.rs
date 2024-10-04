@@ -10,6 +10,3 @@ pub use iter_halfedge::IterHalfEdge;
 
 mod iter_face;
 pub use iter_face::IterFace;
-
-/// Property set describing vertices, faces, edges, ...
-pub mod property_set;
