@@ -7,7 +7,7 @@ use crate::mesh_structure::property_set::PropertySet;
 #[derive(Clone)]
 /// Mesh3D is a struct that represents a mesh in three-dimensional space.
 pub struct Mesh3D {
-    /// A vector of vertices, where each vertex is a `Vertex`,
+    /// A vector of vertices, where each vertex is a 2D vector,
     /// which is a point with x, y, z coordinates.
     pub(super) vertices: Vec<Vector3<f64>>,
 
