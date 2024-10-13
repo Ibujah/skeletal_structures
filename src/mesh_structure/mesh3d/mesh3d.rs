@@ -128,6 +128,24 @@ impl Mesh3D {
             .add_property(property_name, property_type, property_default);
     }
 
+    /// Adds vertex property of type f32
+    pub fn add_vertex_property_f32(&mut self, property_name: String, default_value: f32) -> () {
+        self.add_vertex_property(
+            property_name,
+            PropertyType::Scalar(ScalarType::Float),
+            Property::Float(default_value),
+        );
+    }
+
+    /// Adds vertex property of type f64
+    pub fn add_vertex_property_f64(&mut self, property_name: String, default_value: f64) -> () {
+        self.add_vertex_property(
+            property_name,
+            PropertyType::Scalar(ScalarType::Double),
+            Property::Double(default_value),
+        );
+    }
+
     /// Sets a vertex property
     pub fn set_vertex_property_value(
         &mut self,
@@ -144,14 +162,61 @@ impl Mesh3D {
             .set_property_value(ind_vertex, property_name, property_value)
     }
 
+    /// Set vertex property of type f32
+    pub fn set_vertex_property_f32(
+        &mut self,
+        ind_vertex: usize,
+        property_name: String,
+        property_value: f32,
+    ) -> Result<()> {
+        self.set_vertex_property_value(ind_vertex, property_name, Property::Float(property_value))
+    }
+
+    /// Set vertex property of type f64
+    pub fn set_vertex_property_f64(
+        &mut self,
+        ind_vertex: usize,
+        property_name: String,
+        property_value: f64,
+    ) -> Result<()> {
+        self.set_vertex_property_value(ind_vertex, property_name, Property::Double(property_value))
+    }
+
     /// Get vertex properties
     pub fn get_vertex_properties(&self) -> &PropertySet {
         &self.vertex_properties
     }
 
-    /// Get face properties
-    pub fn get_face_properties(&self) -> &PropertySet {
-        &self.face_properties
+    /// Get vertex property value of type f32
+    pub fn get_vertex_property_value_f32(
+        &self,
+        ind_vertex: usize,
+        property_name: String,
+    ) -> Result<f32> {
+        let property = self
+            .vertex_properties
+            .get_property_value(ind_vertex, property_name)?;
+        if let Property::Float(value) = property {
+            Ok(value)
+        } else {
+            Err(anyhow::Error::msg("Property is not of type f32"))
+        }
+    }
+
+    /// Get vertex property value of type f64
+    pub fn get_vertex_property_value_f64(
+        &self,
+        ind_vertex: usize,
+        property_name: String,
+    ) -> Result<f64> {
+        let property = self
+            .vertex_properties
+            .get_property_value(ind_vertex, property_name)?;
+        if let Property::Double(value) = property {
+            Ok(value)
+        } else {
+            Err(anyhow::Error::msg("Property is not of type f64"))
+        }
     }
 
     /// Adds a face property with a default value
@@ -163,6 +228,19 @@ impl Mesh3D {
     ) -> () {
         self.face_properties
             .add_property(property_name, property_type, property_default);
+    }
+
+    /// Adds face property of type Vec<u32>
+    pub fn add_face_property_vec_u32(
+        &mut self,
+        property_name: String,
+        default_value: Vec<u32>,
+    ) -> () {
+        self.add_face_property(
+            property_name,
+            PropertyType::List(ScalarType::UInt, ScalarType::UInt),
+            Property::ListUInt(default_value),
+        );
     }
 
     /// Sets a face property
@@ -179,5 +257,36 @@ impl Mesh3D {
         }
         self.face_properties
             .set_property_value(ind_face, property_name, property_value)
+    }
+
+    /// Sets a face property of type Vec<u32>
+    pub fn set_face_property_vec_u32(
+        &mut self,
+        ind_face: usize,
+        property_name: String,
+        value: Vec<u32>,
+    ) -> Result<()> {
+        self.set_face_property_value(ind_face, property_name, Property::ListUInt(value))
+    }
+
+    /// Get face properties
+    pub fn get_face_properties(&self) -> &PropertySet {
+        &self.face_properties
+    }
+
+    /// Get face property value of type Vec<u32>
+    pub fn get_face_property_value_vec_u32(
+        &self,
+        ind_face: usize,
+        property_name: String,
+    ) -> Result<Vec<u32>> {
+        let property = self
+            .face_properties
+            .get_property_value(ind_face, property_name)?;
+        if let Property::ListUInt(value) = property {
+            Ok(value)
+        } else {
+            Err(anyhow::Error::msg("Property is not of type Vec<u32>"))
+        }
     }
 }
