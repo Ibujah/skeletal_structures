@@ -48,9 +48,9 @@ impl Skeleton2D {
     }
 
     /// Inserts new vertex into the skeleton
-    pub fn insert_vertex(&mut self, coords: Vec<f64>, radius: f64) -> Result<usize> {
+    pub fn insert_vertex(&mut self, coords: Vector2<f64>, radius: f64) -> Result<usize> {
         let id = self.vertices.len();
-        self.vertices.push(Vector2::new(coords[0], coords[1]));
+        self.vertices.push(coords);
         self.radii.push(radius);
         self.vertex_properties.push_element();
         self.vertex_properties.set_property_value(

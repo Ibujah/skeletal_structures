@@ -3,13 +3,14 @@ use nalgebra::base::*;
 use std::fs::File;
 use std::io::{self, BufRead};
 
-use ply_rs::ply::{Addable, DefaultElement, Encoding, Ply};
+use ply_rs::parser::Parser;
+use ply_rs::ply::{Addable, DefaultElement, Encoding, Ply, Property};
 use ply_rs::writer::Writer;
 
 use super::mesh3d::Mesh3D;
 
-/// Loads obj file as manifold mesh
-pub fn load_obj_manifold(filename: &str) -> Result<Mesh3D> {
+/// Loads obj file as mesh
+pub fn load_obj(filename: &str) -> Result<Mesh3D> {
     let mut vertices = Vec::new();
     let mut faces = Vec::new();
 
@@ -55,8 +56,8 @@ pub fn load_obj_manifold(filename: &str) -> Result<Mesh3D> {
     Ok(Mesh3D::new(vertices, faces))
 }
 
-/// Loads off file as manifold mesh
-pub fn load_off_manifold(filename: &str) -> Result<Mesh3D> {
+/// Loads off file as mesh
+pub fn load_off(filename: &str) -> Result<Mesh3D> {
     let mut vertices = Vec::new();
     let mut faces = Vec::new();
 
@@ -126,8 +127,98 @@ pub fn load_off_manifold(filename: &str) -> Result<Mesh3D> {
     Ok(Mesh3D::new(vertices, faces))
 }
 
-/// Save manifold mesh as ply file
-pub fn save_ply_manifold(filename: &str, mesh: &Mesh3D, header: Option<String>) -> Result<()> {
+/// Load a mesh from a ply file
+pub fn load_ply(file_path: &str) -> Result<Mesh3D> {
+    let mut f = std::fs::File::open(file_path).unwrap();
+
+    let p = Parser::<DefaultElement>::new();
+    let ply = p.read_ply(&mut f)?;
+
+    let mut mesh = Mesh3D::new(Vec::new(), Vec::new());
+
+    // load vertices
+    if !ply.payload.contains_key("vertex") {
+        return Err(anyhow::Error::msg("No vertex element in file"));
+    }
+    for v in ply.payload["vertex"].iter() {
+        let x = if let Some(x_prop) = v.get("x") {
+            if let &Property::Float(x) = x_prop {
+                x
+            } else {
+                return Err(anyhow::Error::msg("No x property in vertex"));
+            }
+        } else {
+            return Err(anyhow::Error::msg("No x property in vertex"));
+        };
+        let y = if let Some(y_prop) = v.get("y") {
+            if let &Property::Float(y) = y_prop {
+                y
+            } else {
+                return Err(anyhow::Error::msg("No y property in vertex"));
+            }
+        } else {
+            return Err(anyhow::Error::msg("No y property in vertex"));
+        };
+        let z = if let Some(z_prop) = v.get("z") {
+            if let &Property::Float(z) = z_prop {
+                z
+            } else {
+                return Err(anyhow::Error::msg("No z property in vertex"));
+            }
+        } else {
+            return Err(anyhow::Error::msg("No z property in vertex"));
+        };
+        let ind_vertex = mesh.insert_vertex(Vector3::new(x as f64, y as f64, z as f64))?;
+
+        for (key, prop) in v.into_iter() {
+            match (key.as_ref(), prop) {
+                ("x", _) => (),
+                ("y", _) => (),
+                ("z", _) => (),
+                (k, p) => {
+                    mesh.set_vertex_property_value(ind_vertex, k.to_string(), p.clone())?;
+                    ()
+                }
+            }
+        }
+    }
+
+    // load faces
+    if !ply.payload.contains_key("face") {
+        return Err(anyhow::Error::msg("No face element in file"));
+    }
+    for f in ply.payload["face"].iter() {
+        let vertex_index = if let Some(vertex_index_prop) = f.get("vertex_index") {
+            if let Property::ListInt(vertex_index) = vertex_index_prop {
+                vertex_index
+            } else {
+                return Err(anyhow::Error::msg("No vertex_index property in face"));
+            }
+        } else {
+            return Err(anyhow::Error::msg("No vertex_index property in face"));
+        }
+        .iter()
+        .map(|&v| v as usize)
+        .collect();
+
+        let ind_face = mesh.insert_face(vertex_index)?;
+
+        for (key, prop) in f.into_iter() {
+            match (key.as_ref(), prop) {
+                ("vertex_index", _) => (),
+                (k, p) => {
+                    mesh.set_face_property_value(ind_face, k.to_string(), p.clone())?;
+                    ()
+                }
+            }
+        }
+    }
+
+    Ok(mesh)
+}
+
+/// Save mesh as ply file
+pub fn save_ply(filename: &str, mesh: &Mesh3D, header: Option<String>) -> Result<()> {
     let mut ply = Ply::<DefaultElement>::new();
     ply.header.encoding = Encoding::Ascii;
     if let Some(h) = header {

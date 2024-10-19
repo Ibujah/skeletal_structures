@@ -117,6 +117,44 @@ impl Mesh3D {
         Ok(&self.faces[ind_face])
     }
 
+    /// Inserts new vertex
+    pub fn insert_vertex(&mut self, vertex: Vector3<f64>) -> Result<usize> {
+        let id = self.vertices.len();
+        self.vertices.push(vertex);
+        self.vertex_properties.push_element();
+        self.vertex_properties.set_property_value(
+            id,
+            "x".to_string(),
+            Property::Double(vertex[0]),
+        )?;
+        self.vertex_properties.set_property_value(
+            id,
+            "y".to_string(),
+            Property::Double(vertex[1]),
+        )?;
+        self.vertex_properties.set_property_value(
+            id,
+            "z".to_string(),
+            Property::Double(vertex[2]),
+        )?;
+        Ok(id)
+    }
+
+    /// Inserts new face
+    pub fn insert_face(&mut self, face: Vec<usize>) -> Result<usize> {
+        let id = self.faces.len();
+        self.face_properties.push_element();
+        self.face_properties
+            .set_property_value(
+                id,
+                "vertex_indices".to_string(),
+                Property::ListInt(face.iter().map(|&i| i as i32).collect()),
+            )
+            .unwrap();
+        self.faces.push(face);
+        Ok(id)
+    }
+
     /// Adds a vertex property with a default value
     pub fn add_vertex_property(
         &mut self,
