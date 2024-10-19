@@ -16,8 +16,14 @@ pub struct Skeleton2D {
     /// Set of vertices properties
     pub(super) vertex_properties: PropertySet,
 
+    /// Edges number
+    pub(super) nb_edges: usize,
+
     /// List of oriented edges starting from each vertex
     pub(super) edges: Vec<Vec<usize>>,
+
+    /// Set of edges properties
+    pub(super) edge_properties: PropertySet,
 }
 
 impl Skeleton2D {
@@ -39,11 +45,24 @@ impl Skeleton2D {
             PropertyType::Scalar(ScalarType::Double),
             Property::Double(0.),
         );
+        let mut edge_properties = PropertySet::new("edge", 0);
+        edge_properties.add_property(
+            "v1".to_string(),
+            PropertyType::Scalar(ScalarType::Int),
+            Property::Int(0),
+        );
+        edge_properties.add_property(
+            "v2".to_string(),
+            PropertyType::Scalar(ScalarType::Int),
+            Property::Int(0),
+        );
         Skeleton2D {
             vertices: vec![],
             radii: vec![],
             vertex_properties,
+            nb_edges: 0,
             edges: vec![],
+            edge_properties,
         }
     }
 
@@ -73,14 +92,31 @@ impl Skeleton2D {
     }
 
     /// Adds edge linking two vertices in skeleton
-    pub fn add_edge(&mut self, v1: usize, v2: usize) -> Result<()> {
+    pub fn insert_edge(&mut self, v1: usize, v2: usize) -> Result<()> {
         if v1 >= self.edges.len() || v2 >= self.edges.len() {
             return Err(anyhow::Error::msg("Vertex indices out of bounds"));
+        }
+        if v1 == v2 {
+            return Err(anyhow::Error::msg("Cannot have edge between same vertex"));
         }
         // insert if edge does not already exists
         if !self.edges[v1].contains(&v2) {
             self.edges[v1].push(v2);
             self.edges[v2].push(v1);
+            let id = self.nb_edges;
+            self.edge_properties.push_element();
+            let (minv, maxv) = if v1 < v2 { (v1, v2) } else { (v2, v1) };
+            self.edge_properties.set_property_value(
+                id,
+                "v1".to_string(),
+                Property::Int(minv as i32),
+            )?;
+            self.edge_properties.set_property_value(
+                id,
+                "v2".to_string(),
+                Property::Int(maxv as i32),
+            )?;
+            self.nb_edges = self.nb_edges + 1;
         }
         Ok(())
     }
@@ -214,5 +250,10 @@ impl Skeleton2D {
         } else {
             Err(anyhow::Error::msg("Property is not of type f64"))
         }
+    }
+
+    /// Get edge properties
+    pub fn get_edge_properties(&self) -> &PropertySet {
+        &self.edge_properties
     }
 }
