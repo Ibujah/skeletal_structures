@@ -77,10 +77,10 @@ pub fn load_skeleton2d_ply(file_path: &str) -> Result<Skeleton2D> {
             if let &Property::Float(radius) = radius_prop {
                 radius
             } else {
-                return Err(anyhow::Error::msg("No radius propertradius in vertex"));
+                return Err(anyhow::Error::msg("No radius property in vertex"));
             }
         } else {
-            return Err(anyhow::Error::msg("No radius propertradius in vertex"));
+            return Err(anyhow::Error::msg("No radius property in vertex"));
         };
         let ind_vertex = skeleton.insert_vertex(Vector2::new(x as f64, y as f64), radius as f64)?;
 
