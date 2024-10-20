@@ -10,7 +10,7 @@ use ply_rs::writer::Writer;
 use super::mesh3d::Mesh3D;
 
 /// Loads obj file as mesh
-pub fn load_obj(filename: &str) -> Result<Mesh3D> {
+pub fn load_mesh_obj(filename: &str) -> Result<Mesh3D> {
     let mut vertices = Vec::new();
     let mut faces = Vec::new();
 
@@ -57,7 +57,7 @@ pub fn load_obj(filename: &str) -> Result<Mesh3D> {
 }
 
 /// Loads off file as mesh
-pub fn load_off(filename: &str) -> Result<Mesh3D> {
+pub fn load_mesh_off(filename: &str) -> Result<Mesh3D> {
     let mut vertices = Vec::new();
     let mut faces = Vec::new();
 
@@ -128,7 +128,7 @@ pub fn load_off(filename: &str) -> Result<Mesh3D> {
 }
 
 /// Load a mesh from a ply file
-pub fn load_ply(file_path: &str) -> Result<Mesh3D> {
+pub fn load_mesh_ply(file_path: &str) -> Result<Mesh3D> {
     let mut f = std::fs::File::open(file_path).unwrap();
 
     let p = Parser::<DefaultElement>::new();
@@ -218,7 +218,7 @@ pub fn load_ply(file_path: &str) -> Result<Mesh3D> {
 }
 
 /// Save mesh as ply file
-pub fn save_ply(filename: &str, mesh: &Mesh3D, header: Option<String>) -> Result<()> {
+pub fn save_mesh_ply(filename: &str, mesh: &Mesh3D, header: Option<String>) -> Result<()> {
     let mut ply = Ply::<DefaultElement>::new();
     ply.header.encoding = Encoding::Ascii;
     if let Some(h) = header {
