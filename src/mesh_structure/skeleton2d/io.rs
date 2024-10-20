@@ -43,7 +43,7 @@ pub fn save_skeleton2d_ply(
 }
 
 /// Load a skeleton from a PLY file
-fn load_skeleton2d_ply(file_path: &str) -> Result<Skeleton2D> {
+pub fn load_skeleton2d_ply(file_path: &str) -> Result<Skeleton2D> {
     let mut f = std::fs::File::open(file_path)?;
 
     let ply = Parser::<DefaultElement>::new().read_ply(&mut f)?;
