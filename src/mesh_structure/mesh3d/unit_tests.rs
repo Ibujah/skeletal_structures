@@ -32,7 +32,7 @@ mod mesh_test {
             vec![0, 2, 3],
             vec![4, 0, 1],
         ];
-        Ok(Mesh3D::new(vertex_coordinates, triangular_faces_indices))
+        Ok(Mesh3D::create(vertex_coordinates, triangular_faces_indices))
     }
 
     #[test]

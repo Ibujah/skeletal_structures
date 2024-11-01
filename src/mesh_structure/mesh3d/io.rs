@@ -53,7 +53,7 @@ pub fn load_mesh_obj(filename: &str) -> Result<Mesh3D> {
         }
     }
 
-    Ok(Mesh3D::new(vertices, faces))
+    Ok(Mesh3D::create(vertices, faces))
 }
 
 /// Loads off file as mesh
@@ -124,7 +124,7 @@ pub fn load_mesh_off(filename: &str) -> Result<Mesh3D> {
         }
     }
 
-    Ok(Mesh3D::new(vertices, faces))
+    Ok(Mesh3D::create(vertices, faces))
 }
 
 /// Load a mesh from a ply file
@@ -134,7 +134,7 @@ pub fn load_mesh_ply(file_path: &str) -> Result<Mesh3D> {
     let p = Parser::<DefaultElement>::new();
     let ply = p.read_ply(&mut f)?;
 
-    let mut mesh = Mesh3D::new(Vec::new(), Vec::new());
+    let mut mesh = Mesh3D::create(Vec::new(), Vec::new());
 
     // load vertices
     if !ply.payload.contains_key("vertex") {
