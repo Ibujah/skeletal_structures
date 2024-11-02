@@ -58,8 +58,8 @@ impl Mesh3D {
 
     /// Create mesh from vertices and faces
     pub fn create(vertices: Vec<Vector3<f64>>, faces: Vec<Vec<usize>>) -> Mesh3D {
-        let mut vertex_properties = PropertySet::new("vertex", vertices.len());
-        let mut face_properties = PropertySet::new("face", faces.len());
+        let mut vertex_properties = PropertySet::new("vertex", 0);
+        let mut face_properties = PropertySet::new("face", 0);
 
         vertex_properties.add_property(
             "x".to_string(),
