@@ -45,7 +45,7 @@ impl Mesh3D {
 
         face_properties.add_property(
             "vertex_indices".to_string(),
-            PropertyType::List(ScalarType::UInt, ScalarType::UInt),
+            PropertyType::List(ScalarType::Char, ScalarType::UInt),
             Property::ListUInt(Vec::new()),
         );
         Mesh3D {
