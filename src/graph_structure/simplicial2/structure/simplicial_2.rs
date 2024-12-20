@@ -1,4 +1,5 @@
 use anyhow::Result;
+use std::cmp::max;
 
 use super::IterHalfEdge2;
 use super::IterNode2;
@@ -68,13 +69,7 @@ impl Simplicial2 {
         self.halfedge_first_node[ind_first + 2] = nod3;
 
         if let Some(vec) = self.node_halfedges.as_mut() {
-            let max_nod = if nod1 > nod2 && nod1 > nod3 {
-                nod1
-            } else if nod2 > nod3 {
-                nod2
-            } else {
-                nod3
-            };
+            let max_nod = max(max(nod1, nod2), nod3);
             if vec.len() <= max_nod {
                 vec.resize(max_nod + 1, Vec::new());
             }
