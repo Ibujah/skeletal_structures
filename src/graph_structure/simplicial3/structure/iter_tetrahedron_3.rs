@@ -16,9 +16,13 @@ impl<'a> IterTetrahedron3<'a> {
         }
     }
 
+    pub(super) fn ind(&self) -> usize {
+        self.ind_tetrahedron
+    }
+
     /// Gets list of halftriangles starting surrounding this tetrahedron
     pub fn halftriangles(&self) -> [IterHalfTriangle3<'a>; 4] {
-        let ind_first = self.ind_tetrahedron * 4;
+        let ind_first = self.ind_tetrahedron << 2;
         [
             IterHalfTriangle3::new(self.simplicial, ind_first + 0),
             IterHalfTriangle3::new(self.simplicial, ind_first + 1),
@@ -29,12 +33,23 @@ impl<'a> IterTetrahedron3<'a> {
 
     /// Gets node iterators
     pub fn nodes(&self) -> [IterNode3<'a>; 4] {
-        let ind_first = self.ind_tetrahedron * 4;
+        let ind_first = self.ind_tetrahedron << 2;
         [
             IterNode3::new(self.simplicial, ind_first + 0),
             IterNode3::new(self.simplicial, ind_first + 1),
             IterNode3::new(self.simplicial, ind_first + 2),
             IterNode3::new(self.simplicial, ind_first + 3),
+        ]
+    }
+
+    /// Gets node values
+    pub fn node_values(&self) -> [usize; 4] {
+        let ind_first = self.ind_tetrahedron << 2;
+        [
+            self.simplicial.tet_nodes[ind_first + 0],
+            self.simplicial.tet_nodes[ind_first + 1],
+            self.simplicial.tet_nodes[ind_first + 2],
+            self.simplicial.tet_nodes[ind_first + 3],
         ]
     }
 }

@@ -1,4 +1,4 @@
-use super::{IterHalfEdge3, IterNode3, Simplicial3};
+use super::{IterHalfEdge3, IterNode3, IterTetrahedron3, Simplicial3};
 
 /// For each triangle index within tetrahedron,
 /// associate list of vertices within tetrahedron
@@ -27,18 +27,25 @@ impl<'a> IterHalfTriangle3<'a> {
         }
     }
 
-    /// Gets node indices
-    pub fn node_indices(&self) -> [usize; 3] {
+    pub(super) fn ind(&self) -> usize {
+        self.ind_halftriangle
+    }
+
+    /// Gets node values
+    pub fn node_values(&self) -> [usize; 3] {
         [
-            self.ind_halftriangle ^ XOR_TRIANGLE_SUBINDICES[0],
-            self.ind_halftriangle ^ XOR_TRIANGLE_SUBINDICES[1],
-            self.ind_halftriangle ^ XOR_TRIANGLE_SUBINDICES[2],
+            self.simplicial
+                .node_value(self.ind_halftriangle ^ XOR_TRIANGLE_SUBINDICES[0]),
+            self.simplicial
+                .node_value(self.ind_halftriangle ^ XOR_TRIANGLE_SUBINDICES[1]),
+            self.simplicial
+                .node_value(self.ind_halftriangle ^ XOR_TRIANGLE_SUBINDICES[2]),
         ]
     }
 
     /// Gets node iterators
     pub fn nodes(&self) -> [IterNode3<'a>; 3] {
-        let ind_nods = self.node_indices();
+        let ind_nods = self.node_values();
         [
             IterNode3::new(self.simplicial, ind_nods[0]),
             IterNode3::new(self.simplicial, ind_nods[1]),
@@ -54,19 +61,38 @@ impl<'a> IterHalfTriangle3<'a> {
                 self.ind_halftriangle,
                 XOR_TRIANGLE_SUBINDICES[0],
                 XOR_TRIANGLE_SUBINDICES[1],
+                XOR_TRIANGLE_SUBINDICES[2],
             ),
             IterHalfEdge3::new(
                 self.simplicial,
                 self.ind_halftriangle,
                 XOR_TRIANGLE_SUBINDICES[1],
                 XOR_TRIANGLE_SUBINDICES[2],
+                XOR_TRIANGLE_SUBINDICES[0],
             ),
             IterHalfEdge3::new(
                 self.simplicial,
                 self.ind_halftriangle,
                 XOR_TRIANGLE_SUBINDICES[2],
                 XOR_TRIANGLE_SUBINDICES[0],
+                XOR_TRIANGLE_SUBINDICES[1],
             ),
         ]
+    }
+
+    /// Gets opposite halftriangle
+    pub fn opposite(&self) -> IterHalfTriangle3<'a> {
+        let ind_halftriangle_opposite = self
+            .simplicial
+            .get_halftriangle_opposite(self.ind_halftriangle);
+        IterHalfTriangle3 {
+            simplicial: self.simplicial,
+            ind_halftriangle: ind_halftriangle_opposite,
+        }
+    }
+
+    /// Gets tetrahedron iterator
+    pub fn tetrahedron(&self) -> IterTetrahedron3<'a> {
+        IterTetrahedron3::new(self.simplicial, self.ind_halftriangle >> 2)
     }
 }
