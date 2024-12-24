@@ -130,6 +130,63 @@ impl Simplicial3 {
         [ind_first, ind_first + 1, ind_first + 2, ind_first + 3]
     }
 
+    pub(super) fn remove_tetrahedron(&mut self, ind_tetra: usize) -> Result<()> {
+        self.unset_tetrahedron(ind_tetra);
+
+        if ind_tetra != self.nb_tetrahedra - 1 {
+            let ind_tri_opp1 = self.halftriangle_opposite[self.halftriangle_opposite.len() - 4];
+            let ind_tri_opp2 = self.halftriangle_opposite[self.halftriangle_opposite.len() - 3];
+            let ind_tri_opp3 = self.halftriangle_opposite[self.halftriangle_opposite.len() - 2];
+            let ind_tri_opp4 = self.halftriangle_opposite[self.halftriangle_opposite.len() - 1];
+
+            let shift_tri_opp1 = self.halftriangle_shift[self.halftriangle_shift.len() - 4];
+            let shift_tri_opp2 = self.halftriangle_shift[self.halftriangle_shift.len() - 3];
+            let shift_tri_opp3 = self.halftriangle_shift[self.halftriangle_shift.len() - 2];
+            let shift_tri_opp4 = self.halftriangle_shift[self.halftriangle_shift.len() - 1];
+
+            let [nod1, nod2, nod3, nod4] = self
+                .get_tetrahedron_from_index(self.nb_tetrahedra - 1)?
+                .node_values();
+
+            let [ind_tri1, ind_tri2, ind_tri3, ind_tri4] =
+                self.set_tetrahedron(ind_tetra, nod1, nod2, nod3, nod4);
+
+            self.halftriangle_opposite[ind_tri1] = ind_tri_opp1;
+            self.halftriangle_opposite[ind_tri2] = ind_tri_opp2;
+            self.halftriangle_opposite[ind_tri3] = ind_tri_opp3;
+            self.halftriangle_opposite[ind_tri4] = ind_tri_opp4;
+
+            self.halftriangle_shift[ind_tri1] = shift_tri_opp1;
+            self.halftriangle_shift[ind_tri2] = shift_tri_opp2;
+            self.halftriangle_shift[ind_tri3] = shift_tri_opp3;
+            self.halftriangle_shift[ind_tri4] = shift_tri_opp4;
+
+            self.halftriangle_opposite[ind_tri_opp1] = ind_tri1;
+            self.halftriangle_opposite[ind_tri_opp2] = ind_tri2;
+            self.halftriangle_opposite[ind_tri_opp3] = ind_tri3;
+            self.halftriangle_opposite[ind_tri_opp4] = ind_tri4;
+        }
+
+        self.tet_nodes.pop();
+        self.tet_nodes.pop();
+        self.tet_nodes.pop();
+        self.tet_nodes.pop();
+
+        self.halftriangle_opposite.pop();
+        self.halftriangle_opposite.pop();
+        self.halftriangle_opposite.pop();
+        self.halftriangle_opposite.pop();
+
+        self.halftriangle_shift.pop();
+        self.halftriangle_shift.pop();
+        self.halftriangle_shift.pop();
+        self.halftriangle_shift.pop();
+
+        self.nb_tetrahedra = self.nb_tetrahedra - 1;
+
+        Ok(())
+    }
+
     pub(super) fn oppose_halftriangles(
         &mut self,
         htri0: usize,
@@ -293,6 +350,14 @@ impl Simplicial3 {
     /// Gets number of tetrahedra
     pub fn get_nb_tetrahedra(&self) -> usize {
         self.nb_tetrahedra
+    }
+
+    /// Gets triangle iterator from index
+    pub(super) fn get_halftriangle_from_index(&self, ind_htri: usize) -> Result<IterHalfTriangle3> {
+        if ind_htri > self.get_nb_tetrahedra() << 2 {
+            return Err(anyhow::Error::msg("Halftriangle index out of bounds"));
+        }
+        Ok(IterHalfTriangle3::new(self, ind_htri))
     }
 
     /// Gets tetrahedron iterator from index

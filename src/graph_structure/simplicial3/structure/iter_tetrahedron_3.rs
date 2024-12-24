@@ -52,4 +52,10 @@ impl<'a> IterTetrahedron3<'a> {
             self.simplicial.tet_nodes[ind_first + 3],
         ]
     }
+
+    /// Print tetrahedron values
+    pub fn print(&self) -> () {
+        let [n0, n1, n2, n3] = self.node_values();
+        print!("[{} {} {} {}]", n0, n1, n2, n3)
+    }
 }

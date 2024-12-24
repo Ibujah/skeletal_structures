@@ -59,7 +59,7 @@ impl<'a> IterHalfEdge3<'a> {
     }
 
     pub(super) fn subindex(&self) -> usize {
-        3 - self.xor0
+        self.xor0 ^ 3
     }
 
     /// Gets node values
@@ -128,5 +128,11 @@ impl<'a> IterHalfEdge3<'a> {
     /// Gets tetrahedron iterator
     pub fn tetrahedron(&self) -> IterTetrahedron3<'a> {
         IterTetrahedron3::new(self.simplicial, self.ind_first >> 2)
+    }
+
+    /// Print halfedge values
+    pub fn print(&self) -> () {
+        let [n0, n1] = self.node_values();
+        print!("[{} {}]", n0, n1)
     }
 }

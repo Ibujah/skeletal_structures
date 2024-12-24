@@ -95,4 +95,10 @@ impl<'a> IterHalfTriangle3<'a> {
     pub fn tetrahedron(&self) -> IterTetrahedron3<'a> {
         IterTetrahedron3::new(self.simplicial, self.ind_halftriangle >> 2)
     }
+
+    /// Print halftriangle values
+    pub fn print(&self) -> () {
+        let [n0, n1, n2] = self.node_values();
+        print!("[{} {} {}]", n0, n1, n2)
+    }
 }

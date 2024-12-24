@@ -3,9 +3,9 @@ mod simplicial3_test {
     use anyhow::Result;
     use rstest::rstest;
 
-    use crate::graph_structure::simplicial3::IterHalfTriangle3;
-
-    use super::super::structure::Simplicial3;
+    use crate::graph_structure::simplicial3::{
+        BowyerWatsonInserter, IterHalfTriangle3, Simplicial3,
+    };
 
     fn test_triangle(triabc: IterHalfTriangle3, a: usize, b: usize, c: usize) -> () {
         assert!(triabc.node_values() == [a, b, c]);
@@ -44,11 +44,18 @@ mod simplicial3_test {
         assert!(heca.opposite().node_values() == [a, c]);
     }
 
-    #[test]
-    fn neighbor_test() -> Result<()> {
+    #[rstest]
+    #[case(0, 1, 2, 3)]
+    #[case(10, 11, 12, 13)]
+    fn neighbor_test(
+        #[case] n0: usize,
+        #[case] n1: usize,
+        #[case] n2: usize,
+        #[case] n3: usize,
+    ) -> Result<()> {
         let mut simpl = Simplicial3::new(false);
 
-        let [ind_tetra0, _] = simpl.first_tetrahedron([0, 1, 2, 3])?;
+        let [ind_tetra0, _] = simpl.first_tetrahedron([n0, n1, n2, n3])?;
 
         let tetra0 = simpl.get_tetrahedron_from_index(ind_tetra0)?;
 
@@ -56,28 +63,36 @@ mod simplicial3_test {
 
         let [tri321, tri230, tri103, tri012] = tetra0.halftriangles();
 
-        test_triangle(tri321, 3, 2, 1);
-        test_triangle(tri230, 2, 3, 0);
-        test_triangle(tri103, 1, 0, 3);
-        test_triangle(tri012, 0, 1, 2);
+        test_triangle(tri321, n3, n2, n1);
+        test_triangle(tri230, n2, n3, n0);
+        test_triangle(tri103, n1, n0, n3);
+        test_triangle(tri012, n0, n1, n2);
 
         Ok(())
     }
 
     #[rstest]
-    #[case(true)]
-    #[case(false)]
-    fn getter_test(#[case] register_node_halfedges: bool) -> Result<()> {
+    #[case(true, 0, 1, 2, 3)]
+    #[case(true, 10, 11, 12, 13)]
+    #[case(false, 0, 1, 2, 3)]
+    #[case(false, 10, 11, 12, 13)]
+    fn getter_test(
+        #[case] register_node_halfedges: bool,
+        #[case] n0: usize,
+        #[case] n1: usize,
+        #[case] n2: usize,
+        #[case] n3: usize,
+    ) -> Result<()> {
         let mut simpl = Simplicial3::new(register_node_halfedges);
 
-        simpl.first_tetrahedron([0, 1, 2, 3])?;
+        simpl.first_tetrahedron([n0, n1, n2, n3])?;
 
-        let nod1 = if let Some(nod) = simpl.find_node(1) {
+        let nod1 = if let Some(nod) = simpl.find_node(n1) {
             nod
         } else {
             return Err(anyhow::anyhow!("Node not found"));
         };
-        assert!(nod1.value() == 1);
+        assert!(nod1.value() == n1);
 
         let he_from_1 = nod1.halfedges();
         let he_from_1_values = he_from_1
@@ -91,38 +106,55 @@ mod simplicial3_test {
         tet_from_1_values.sort();
         tet_from_1_values.dedup();
         assert!(he_from_1_values.len() == 6);
-        assert!(he_from_1_values.contains(&[1, 0]));
-        assert!(he_from_1_values.contains(&[1, 2]));
-        assert!(he_from_1_values.contains(&[1, 3]));
+        assert!(he_from_1_values.contains(&[n1, n0]));
+        assert!(he_from_1_values.contains(&[n1, n2]));
+        assert!(he_from_1_values.contains(&[n1, n3]));
         assert!(tet_from_1_values.len() == 2);
 
-        let he20 = if let Some(he) = simpl.find_halfedge(2, 0) {
+        let he20 = if let Some(he) = simpl.find_halfedge(n2, n0) {
             he
         } else {
             return Err(anyhow::anyhow!("Halfedge not found"));
         };
-        assert!(he20.node_values() == [2, 0]);
+        assert!(he20.node_values() == [n2, n0]);
 
-        let tri310 = if let Some(tri) = simpl.find_halftriangle(3, 1, 0) {
+        let tri310 = if let Some(tri) = simpl.find_halftriangle(n3, n1, n0) {
             tri
         } else {
             return Err(anyhow::anyhow!("Halftriangle not found"));
         };
         assert!(
-            tri310.node_values() == [3, 1, 0]
-                || tri310.node_values() == [1, 0, 3]
-                || tri310.node_values() == [0, 3, 1]
+            tri310.node_values() == [n3, n1, n0]
+                || tri310.node_values() == [n1, n0, n3]
+                || tri310.node_values() == [n0, n3, n1]
         );
 
-        let tet0231 = if let Some(tet) = simpl.find_tetrahedron(0, 2, 3, 1) {
+        let tet0231 = if let Some(tet) = simpl.find_tetrahedron(n0, n2, n3, n1) {
             tet
         } else {
             return Err(anyhow::anyhow!("Tetrahedron not found"));
         };
-        assert!(tet0231.node_values().contains(&0));
-        assert!(tet0231.node_values().contains(&2));
-        assert!(tet0231.node_values().contains(&3));
-        assert!(tet0231.node_values().contains(&1));
+        assert!(tet0231.node_values().contains(&n0));
+        assert!(tet0231.node_values().contains(&n2));
+        assert!(tet0231.node_values().contains(&n3));
+        assert!(tet0231.node_values().contains(&n1));
+        Ok(())
+    }
+
+    #[test]
+    fn insert_bw_test() -> Result<()> {
+        let mut simpl = Simplicial3::new(false);
+
+        simpl.first_tetrahedron([0, 1, 2, 3])?;
+
+        let mut bw_inserter = BowyerWatsonInserter::new(&mut simpl, 1);
+
+        while let Some(_) = bw_inserter.bw_tetra_to_check() {
+            bw_inserter.bw_keep_tetra()?;
+        }
+
+        bw_inserter.bw_insert_node(4)?;
+
         Ok(())
     }
 }

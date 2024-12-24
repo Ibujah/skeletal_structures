@@ -8,6 +8,8 @@ use super::{IterHalfTriangle3, IterTetrahedron3, Simplicial3};
 pub struct BowyerWatsonInserter<'a> {
     simplicial: &'a mut Simplicial3,
 
+    ind_tetra_cur: Option<usize>,
+
     // structures to speed up tetrahedra insertion with Bowyer Watson algorithm
     should_rem_tet: Vec<bool>,
     should_keep_tet: Vec<bool>,
@@ -22,6 +24,7 @@ impl<'a> BowyerWatsonInserter<'a> {
         let nb_tetrahedra = simplicial.get_nb_tetrahedra();
         let mut bw_inserter = BowyerWatsonInserter {
             simplicial,
+            ind_tetra_cur: Some(ind_first_tetra),
             should_rem_tet: vec![false; nb_tetrahedra],
             should_keep_tet: vec![false; nb_tetrahedra],
             tet_to_rem: Vec::new(),
@@ -29,7 +32,7 @@ impl<'a> BowyerWatsonInserter<'a> {
             tet_to_check: Vec::new(),
         };
 
-        bw_inserter.bw_rem_tetra(ind_first_tetra);
+        bw_inserter.bw_rem_tetra().unwrap();
 
         bw_inserter
     }
@@ -43,6 +46,7 @@ impl<'a> BowyerWatsonInserter<'a> {
                     && self.should_keep_tet[ind_tetra] == false
                 {
                     let ind_first = ind_tetra << 2;
+                    self.ind_tetra_cur = Some(ind_tetra);
                     return Some([
                         self.simplicial.tet_nodes[ind_first],
                         self.simplicial.tet_nodes[ind_first + 1],
@@ -58,7 +62,13 @@ impl<'a> BowyerWatsonInserter<'a> {
     }
 
     /// Sets tetrahedron to remove
-    pub fn bw_rem_tetra(&mut self, ind_tetra: usize) -> () {
+    pub fn bw_rem_tetra(&mut self) -> Result<()> {
+        let ind_tetra = if let Some(ind_tetra) = self.ind_tetra_cur {
+            ind_tetra
+        } else {
+            return Err(anyhow::Error::msg("No tetrahedron to remove"));
+        };
+
         // get all triangles indices
         let tri0 = ind_tetra << 2;
         let tri1 = tri0 + 1;
@@ -86,12 +96,19 @@ impl<'a> BowyerWatsonInserter<'a> {
         // check ind_tetra and and it to the remove list
         self.should_rem_tet[ind_tetra] = true;
         self.tet_to_rem.push(ind_tetra);
+        Ok(())
     }
 
     /// Sets tetrahedron to keep
-    pub fn bw_keep_tetra(&mut self, ind_tetra: usize) -> () {
+    pub fn bw_keep_tetra(&mut self) -> Result<()> {
+        let ind_tetra = if let Some(ind_tetra) = self.ind_tetra_cur {
+            ind_tetra
+        } else {
+            return Err(anyhow::Error::msg("No tetrahedron to keep"));
+        };
         self.should_keep_tet[ind_tetra] = true;
         self.tet_to_keep.push(ind_tetra);
+        Ok(())
     }
 
     fn find_first_boundary_triangle(&self) -> Result<usize> {
@@ -117,16 +134,17 @@ impl<'a> BowyerWatsonInserter<'a> {
     fn external_neighbors(
         &self,
         boundary_tri: &mut Vec<usize>,
-        boundary_nei_opt: &mut Vec<[Option<usize>; 3]>,
+        boundary_nei_opt: &mut Vec<[Option<(usize, usize)>; 3]>,
         ind_bnd_tri_1: usize,
-    ) -> [usize; 3] {
+    ) -> [(usize, usize); 3] {
         let cur_tri_bnd = IterHalfTriangle3::new(self.simplicial, boundary_tri[ind_bnd_tri_1]);
-        let mut boundary_nei_1 = [0; 3];
+        let mut boundary_nei_1 = [(0, 0); 3];
         let he_1 = cur_tri_bnd.halfedges();
         // for each edge of the triangle, get neighbor triangle
         for subind_1 in 0..3 {
             // only if neighbor is not already set
-            if boundary_nei_opt[ind_bnd_tri_1][subind_1].is_some() {
+            if let Some((ind_tri, subind)) = boundary_nei_opt[ind_bnd_tri_1][subind_1] {
+                boundary_nei_1[subind_1] = (ind_tri, subind);
                 continue;
             }
             // starting from opposite of the halfedge,
@@ -157,9 +175,9 @@ impl<'a> BowyerWatsonInserter<'a> {
                 boundary_tri.len() - 1
             };
             // add neighbor to both triangles
-            boundary_nei_opt[ind_bnd_tri_1][subind_1] = Some(ind_bnd_tri_2);
-            boundary_nei_opt[ind_bnd_tri_2][subind_2] = Some(ind_bnd_tri_1);
-            boundary_nei_1[subind_1] = ind_bnd_tri_2;
+            boundary_nei_opt[ind_bnd_tri_1][subind_1] = Some((ind_bnd_tri_2, subind_2));
+            boundary_nei_opt[ind_bnd_tri_2][subind_2] = Some((ind_bnd_tri_1, subind_1));
+            boundary_nei_1[subind_1] = (ind_bnd_tri_2, subind_2);
         }
         boundary_nei_1
     }
@@ -167,9 +185,9 @@ impl<'a> BowyerWatsonInserter<'a> {
     fn build_boundary_triangles_graph(
         &self,
         ind_tri_first: usize,
-    ) -> (Vec<usize>, Vec<[usize; 3]>) {
+    ) -> (Vec<usize>, Vec<[(usize, usize); 3]>) {
         let mut boundary_tri = vec![ind_tri_first];
-        let mut boundary_nei_opt: Vec<[Option<usize>; 3]> = vec![[None; 3]];
+        let mut boundary_nei_opt: Vec<[Option<(usize, usize)>; 3]> = vec![[None; 3]];
         let mut boundary_nei = Vec::new();
         let mut ind_bnd_tri_1 = 0;
         loop {
@@ -205,6 +223,17 @@ impl<'a> BowyerWatsonInserter<'a> {
             let cur_tri = IterHalfTriangle3::new(self.simplicial, vec_tri[i]);
             let [nod0, nod1, nod2] = cur_tri.node_values();
 
+            print!("From :");
+            cur_tri.print();
+            let [he0, he1, he2] = cur_tri.halfedges();
+            print!(" ");
+            he0.print();
+            print!(" ");
+            he1.print();
+            print!(" ");
+            he2.print();
+            println!("");
+
             let ind_tet = if let Some(ind_tet_replace) = self.tet_to_rem.pop() {
                 self.simplicial.unset_tetrahedron(ind_tet_replace);
                 ind_tet_replace
@@ -213,44 +242,72 @@ impl<'a> BowyerWatsonInserter<'a> {
             };
 
             self.simplicial
-                .set_tetrahedron(ind_tet, node, nod0, nod1, nod2);
+                .set_tetrahedron(ind_tet, node, nod2, nod0, nod1);
+            let tetra = self.simplicial.get_tetrahedron_from_index(ind_tet)?;
+            print!("Added: ");
+            tetra.print();
+            let [tri0, tri1, tri2, tri3] = tetra.halftriangles();
+            print!(" ");
+            tri0.print();
+            print!(" ");
+            tri1.print();
+            print!(" ");
+            tri2.print();
+            print!(" ");
+            tri3.print();
+            println!("");
 
             added_tets.push(ind_tet);
         }
 
         // 4 - create links
         for i in 0..vec_tri.len() {
-            let (tri0, tri1, tri2, tri3) = (
-                added_tets[i] * 4,
-                added_tets[i] * 4 + 1,
-                added_tets[i] * 4 + 2,
-                added_tets[i] * 4 + 3,
-            );
+            let ind_cur_tetra = added_tets[i];
 
             let ind_tri_nei = vec_tri[i];
+            let ind_tri_0 = ind_cur_tetra << 2;
+
+            println!("Opposing :");
+            self.simplicial
+                .get_halftriangle_from_index(ind_tri_0)?
+                .print();
+            print!(" and ");
+            self.simplicial
+                .get_halftriangle_from_index(ind_tri_nei)?
+                .print();
+            println!("");
 
             self.simplicial.oppose_halftriangles(
-                tri0,
+                ind_tri_0,
                 ind_tri_nei,
                 ShiftType::ABC2CBA,
                 ShiftType::ABC2CBA,
             );
 
-            let ind_nei_0 = vec_nei[i][0];
-            let ind_nei_1 = vec_nei[i][1];
-            let ind_nei_2 = vec_nei[i][2];
+            for j in 0..3 {
+                let (ind_nei_j, subind_nei_j) = vec_nei[i][j];
 
-            let ind_tet_nei_0 = added_tets[ind_nei_0];
-            let ind_tet_nei_1 = added_tets[ind_nei_1];
-            let ind_tet_nei_2 = added_tets[ind_nei_2];
+                let ind_tet_nei_j = added_tets[ind_nei_j];
+                if ind_cur_tetra < ind_tet_nei_j {
+                    let tetraj = IterTetrahedron3::new(self.simplicial, ind_tet_nei_j);
 
-            self.simplicial
-                .oppose_halftriangles_auto(tri1, ind_tet_nei_0)?;
-            self.simplicial
-                .oppose_halftriangles_auto(tri2, ind_tet_nei_1)?;
-            self.simplicial
-                .oppose_halftriangles_auto(tri3, ind_tet_nei_2)?;
-            todo!()
+                    let ind_tri_nei_j = tetraj.halftriangles()[subind_nei_j + 1].ind();
+                    let ind_tri_j = ind_tri_0 + 1 + j;
+
+                    println!("Opposing :");
+                    self.simplicial
+                        .get_halftriangle_from_index(ind_tri_j)?
+                        .print();
+                    print!(" and ");
+                    self.simplicial
+                        .get_halftriangle_from_index(ind_tri_nei_j)?
+                        .print();
+                    println!("");
+
+                    self.simplicial
+                        .oppose_halftriangles_auto(ind_tri_j, ind_tri_nei_j)?;
+                }
+            }
         }
 
         loop {
@@ -259,6 +316,10 @@ impl<'a> BowyerWatsonInserter<'a> {
             } else {
                 break;
             }
+        }
+
+        while let Some(ind_tet_remove) = self.tet_to_rem.pop() {
+            self.simplicial.remove_tetrahedron(ind_tet_remove)?;
         }
 
         Ok(added_tets)

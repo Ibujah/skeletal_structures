@@ -48,4 +48,10 @@ impl<'a> IterNode3<'a> {
             vec_he
         }
     }
+
+    /// Print node value
+    pub fn print(&self) -> () {
+        let n0 = self.value();
+        print!("[{}]", n0)
+    }
 }
