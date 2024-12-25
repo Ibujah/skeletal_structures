@@ -218,7 +218,6 @@ impl<'a> BowyerWatsonInserter<'a> {
         let (vec_tri, vec_nei) = self.build_boundary_triangles_graph(ind_tri_first);
 
         // 3 - create each tetrahedra: triangle and added node
-        let shift_type = [ShiftType::ABC2BAC, ShiftType::ABC2CBA, ShiftType::ABC2ACB];
         let mut added_tets = Vec::new();
         for i in 0..vec_tri.len() {
             let cur_tri = IterHalfTriangle3::new(self.simplicial, vec_tri[i]);
@@ -299,7 +298,7 @@ impl<'a> BowyerWatsonInserter<'a> {
                     );
 
                     self.simplicial
-                        .oppose_halftriangles(ind_tri_j, ind_tri_nei_j, shift_type[j]);
+                        .oppose_halftriangles_auto(ind_tri_j, ind_tri_nei_j)?;
                 }
             }
         }

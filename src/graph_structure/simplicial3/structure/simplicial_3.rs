@@ -199,29 +199,27 @@ impl Simplicial3 {
         self.halftriangle_shift[htri1] = shift_tri;
     }
 
-    // pub(super) fn oppose_halftriangles_auto(&mut self, htri0: usize, htri1: usize) -> Result<()> {
-    //     let tri0 = IterHalfTriangle3::new(self, htri0);
-    //     let tri1 = IterHalfTriangle3::new(self, htri1);
+    pub(super) fn oppose_halftriangles_auto(&mut self, htri0: usize, htri1: usize) -> Result<()> {
+        let tri0 = IterHalfTriangle3::new(self, htri0);
+        let tri1 = IterHalfTriangle3::new(self, htri1);
 
-    //     let [hab, _, _] = tri0.halfedges();
-    //     let [hde, hef, hfd] = tri1.halfedges();
+        let [a, _, _] = tri0.node_values();
+        let [d, e, f] = tri1.node_values();
 
-    //     let [a, b] = hab.node_values();
+        let shift = if a == d {
+            ShiftType::ABC2ACB
+        } else if a == e {
+            ShiftType::ABC2BAC
+        } else if a == f {
+            ShiftType::ABC2CBA
+        } else {
+            return Err(anyhow::Error::msg("Faces are not opposite"));
+        };
 
-    //     let shift = if hde.node_values() == [b, a] {
-    //         ShiftType::ABC2BAC
-    //     } else if hef.node_values() == [b, a] {
-    //         ShiftType::ABC2CBA
-    //     } else if hfd.node_values() == [b, a] {
-    //         ShiftType::ABC2ACB
-    //     } else {
-    //         return Err(anyhow::Error::msg("Faces are not opposite"));
-    //     };
+        self.oppose_halftriangles(htri0, htri1, shift);
 
-    //     self.oppose_halftriangles(htri0, htri1, shift);
-
-    //     Ok(())
-    // }
+        Ok(())
+    }
 
     ////////////////////////////
     /// Public find methods ///

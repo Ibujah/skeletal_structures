@@ -160,6 +160,21 @@ mod simplicial3_test {
         bw_inserter.bw_insert_node(4)?;
 
         assert!(simplicial3_is_valid(&simpl)?);
+
+        let mut bw_inserter = BowyerWatsonInserter::new(&mut simpl, 3);
+
+        if let Some(_) = bw_inserter.bw_tetra_to_check() {
+            bw_inserter.bw_rem_tetra()?;
+        }
+
+        while let Some(_) = bw_inserter.bw_tetra_to_check() {
+            bw_inserter.bw_keep_tetra()?;
+        }
+
+        bw_inserter.bw_insert_node(10)?;
+
+        assert!(simplicial3_is_valid(&simpl)?);
+
         Ok(())
     }
 }
