@@ -3,3 +3,6 @@ mod structure;
 pub use structure::*;
 
 mod unit_tests;
+
+mod functions;
+pub use functions::*;

@@ -130,9 +130,9 @@ impl<'a> IterHalfEdge3<'a> {
         IterTetrahedron3::new(self.simplicial, self.ind_first >> 2)
     }
 
-    /// Print halfedge values
-    pub fn print(&self) -> () {
+    /// Converts halfedge to string
+    pub fn to_string(&self) -> String {
         let [n0, n1] = self.node_values();
-        print!("[{} {}]", n0, n1)
+        format!("[{} {}]", n0, n1)
     }
 }

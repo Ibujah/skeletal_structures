@@ -53,9 +53,9 @@ impl<'a> IterTetrahedron3<'a> {
         ]
     }
 
-    /// Print tetrahedron values
-    pub fn print(&self) -> () {
+    /// Converts tetrahedron to string
+    pub fn to_string(&self) -> String {
         let [n0, n1, n2, n3] = self.node_values();
-        print!("[{} {} {} {}]", n0, n1, n2, n3)
+        format!("[{} {} {} {}]", n0, n1, n2, n3)
     }
 }

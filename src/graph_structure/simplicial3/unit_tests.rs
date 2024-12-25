@@ -4,7 +4,7 @@ mod simplicial3_test {
     use rstest::rstest;
 
     use crate::graph_structure::simplicial3::{
-        BowyerWatsonInserter, IterHalfTriangle3, Simplicial3,
+        simplicial3_is_valid, BowyerWatsonInserter, IterHalfTriangle3, Simplicial3,
     };
 
     fn test_triangle(triabc: IterHalfTriangle3, a: usize, b: usize, c: usize) -> () {
@@ -67,6 +67,8 @@ mod simplicial3_test {
         test_triangle(tri230, n2, n3, n0);
         test_triangle(tri103, n1, n0, n3);
         test_triangle(tri012, n0, n1, n2);
+
+        assert!(simplicial3_is_valid(&simpl)?);
 
         Ok(())
     }
@@ -138,6 +140,8 @@ mod simplicial3_test {
         assert!(tet0231.node_values().contains(&n2));
         assert!(tet0231.node_values().contains(&n3));
         assert!(tet0231.node_values().contains(&n1));
+
+        assert!(simplicial3_is_valid(&simpl)?);
         Ok(())
     }
 
@@ -155,6 +159,7 @@ mod simplicial3_test {
 
         bw_inserter.bw_insert_node(4)?;
 
+        assert!(simplicial3_is_valid(&simpl)?);
         Ok(())
     }
 }

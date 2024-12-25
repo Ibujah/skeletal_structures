@@ -96,9 +96,9 @@ impl<'a> IterHalfTriangle3<'a> {
         IterTetrahedron3::new(self.simplicial, self.ind_halftriangle >> 2)
     }
 
-    /// Print halftriangle values
-    pub fn print(&self) -> () {
+    /// Converts halftriangle to string
+    pub fn to_string(&self) -> String {
         let [n0, n1, n2] = self.node_values();
-        print!("[{} {} {}]", n0, n1, n2)
+        format!("[{} {} {}]", n0, n1, n2)
     }
 }

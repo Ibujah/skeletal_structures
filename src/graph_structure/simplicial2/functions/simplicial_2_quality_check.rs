@@ -4,7 +4,7 @@ pub use super::super::IterHalfEdge2;
 pub use super::super::Simplicial2;
 
 /// Checks halfedge validity
-pub fn halfedge_is_valid(halfedge: &IterHalfEdge2) -> bool {
+pub fn halfedge2_is_valid(halfedge: &IterHalfEdge2) -> bool {
     let first_node = halfedge.first_node();
     let last_node = halfedge.last_node();
 
@@ -34,11 +34,11 @@ pub fn halfedge_is_valid(halfedge: &IterHalfEdge2) -> bool {
 }
 
 /// Checks validity of simplicial graph
-pub fn simplicial_is_valid(simplicial: &Simplicial2) -> Result<bool> {
+pub fn simplicial2_is_valid(simplicial: &Simplicial2) -> Result<bool> {
     let mut valid = true;
 
     for he in simplicial.get_all_halfedges().iter() {
-        valid = valid && halfedge_is_valid(&he);
+        valid = valid && halfedge2_is_valid(&he);
     }
 
     Ok(valid)

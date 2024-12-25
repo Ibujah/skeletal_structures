@@ -218,21 +218,21 @@ impl<'a> BowyerWatsonInserter<'a> {
         let (vec_tri, vec_nei) = self.build_boundary_triangles_graph(ind_tri_first);
 
         // 3 - create each tetrahedra: triangle and added node
+        let shift_type = [ShiftType::ABC2BAC, ShiftType::ABC2CBA, ShiftType::ABC2ACB];
         let mut added_tets = Vec::new();
         for i in 0..vec_tri.len() {
             let cur_tri = IterHalfTriangle3::new(self.simplicial, vec_tri[i]);
             let [nod0, nod1, nod2] = cur_tri.node_values();
 
-            print!("From :");
-            cur_tri.print();
             let [he0, he1, he2] = cur_tri.halfedges();
-            print!(" ");
-            he0.print();
-            print!(" ");
-            he1.print();
-            print!(" ");
-            he2.print();
-            println!("");
+
+            println!(
+                "From: {}; {}, {}, {}",
+                cur_tri.to_string(),
+                he0.to_string(),
+                he1.to_string(),
+                he2.to_string()
+            );
 
             let ind_tet = if let Some(ind_tet_replace) = self.tet_to_rem.pop() {
                 self.simplicial.unset_tetrahedron(ind_tet_replace);
@@ -244,18 +244,15 @@ impl<'a> BowyerWatsonInserter<'a> {
             self.simplicial
                 .set_tetrahedron(ind_tet, node, nod2, nod0, nod1);
             let tetra = self.simplicial.get_tetrahedron_from_index(ind_tet)?;
-            print!("Added: ");
-            tetra.print();
             let [tri0, tri1, tri2, tri3] = tetra.halftriangles();
-            print!(" ");
-            tri0.print();
-            print!(" ");
-            tri1.print();
-            print!(" ");
-            tri2.print();
-            print!(" ");
-            tri3.print();
-            println!("");
+            println!(
+                "Added: {}; {}, {}, {}, {}",
+                tetra.to_string(),
+                tri0.to_string(),
+                tri1.to_string(),
+                tri2.to_string(),
+                tri3.to_string()
+            );
 
             added_tets.push(ind_tet);
         }
@@ -267,22 +264,18 @@ impl<'a> BowyerWatsonInserter<'a> {
             let ind_tri_nei = vec_tri[i];
             let ind_tri_0 = ind_cur_tetra << 2;
 
-            println!("Opposing :");
-            self.simplicial
-                .get_halftriangle_from_index(ind_tri_0)?
-                .print();
-            print!(" and ");
-            self.simplicial
-                .get_halftriangle_from_index(ind_tri_nei)?
-                .print();
-            println!("");
-
-            self.simplicial.oppose_halftriangles(
-                ind_tri_0,
-                ind_tri_nei,
-                ShiftType::ABC2CBA,
-                ShiftType::ABC2CBA,
+            println!(
+                "Opposing: {} and {}",
+                self.simplicial
+                    .get_halftriangle_from_index(ind_tri_0)?
+                    .to_string(),
+                self.simplicial
+                    .get_halftriangle_from_index(ind_tri_nei)?
+                    .to_string()
             );
+
+            self.simplicial
+                .oppose_halftriangles(ind_tri_0, ind_tri_nei, ShiftType::ABC2BAC);
 
             for j in 0..3 {
                 let (ind_nei_j, subind_nei_j) = vec_nei[i][j];
@@ -294,18 +287,19 @@ impl<'a> BowyerWatsonInserter<'a> {
                     let ind_tri_nei_j = tetraj.halftriangles()[subind_nei_j + 1].ind();
                     let ind_tri_j = ind_tri_0 + 1 + j;
 
-                    println!("Opposing :");
-                    self.simplicial
-                        .get_halftriangle_from_index(ind_tri_j)?
-                        .print();
-                    print!(" and ");
-                    self.simplicial
-                        .get_halftriangle_from_index(ind_tri_nei_j)?
-                        .print();
-                    println!("");
+                    println!(
+                        "{}  Opposing: {} and {}",
+                        j,
+                        self.simplicial
+                            .get_halftriangle_from_index(ind_tri_j)?
+                            .to_string(),
+                        self.simplicial
+                            .get_halftriangle_from_index(ind_tri_nei_j)?
+                            .to_string()
+                    );
 
                     self.simplicial
-                        .oppose_halftriangles_auto(ind_tri_j, ind_tri_nei_j)?;
+                        .oppose_halftriangles(ind_tri_j, ind_tri_nei_j, shift_type[j]);
                 }
             }
         }

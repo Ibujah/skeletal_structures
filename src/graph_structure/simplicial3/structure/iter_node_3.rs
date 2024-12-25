@@ -49,9 +49,9 @@ impl<'a> IterNode3<'a> {
         }
     }
 
-    /// Print node value
-    pub fn print(&self) -> () {
+    /// Converts node value to string
+    pub fn to_string(&self) -> String {
         let n0 = self.value();
-        print!("[{}]", n0)
+        format!("[{}]", n0)
     }
 }

@@ -2,7 +2,7 @@
 mod simplicial2_test {
     use anyhow::Result;
 
-    use super::super::functions::simplicial_is_valid;
+    use super::super::functions::simplicial2_is_valid;
     use super::super::structure::Simplicial2;
 
     #[test]
@@ -11,7 +11,7 @@ mod simplicial2_test {
 
         let [_, ind_tri1] = simpl.insert_first_triangle([0, 1, 2])?;
 
-        assert!(simplicial_is_valid(&simpl)?);
+        assert!(simplicial2_is_valid(&simpl)?);
         assert!(simpl.get_nb_triangles() == 2);
         assert!(simpl.find_triangle(0, 1, 2).is_some());
 
@@ -58,7 +58,7 @@ mod simplicial2_test {
         assert!(simpl.find_triangle(0, 2, 3).is_some());
         assert!(simpl.find_triangle(1, 2, 3).is_some());
 
-        assert!(simplicial_is_valid(&simpl)?);
+        assert!(simplicial2_is_valid(&simpl)?);
         Ok(())
     }
 
@@ -67,7 +67,7 @@ mod simplicial2_test {
         let mut simpl = Simplicial2::new(true);
         let [_, ind_tri1] = simpl.insert_first_triangle([0, 1, 2])?;
 
-        assert!(simplicial_is_valid(&simpl)?);
+        assert!(simplicial2_is_valid(&simpl)?);
         assert!(simpl.get_nb_triangles() == 2);
         assert!(simpl.find_triangle(0, 1, 2).is_some());
 
@@ -114,7 +114,7 @@ mod simplicial2_test {
         assert!(simpl.find_triangle(0, 2, 3).is_some());
         assert!(simpl.find_triangle(1, 2, 3).is_some());
 
-        assert!(simplicial_is_valid(&simpl)?);
+        assert!(simplicial2_is_valid(&simpl)?);
 
         Ok(())
     }
