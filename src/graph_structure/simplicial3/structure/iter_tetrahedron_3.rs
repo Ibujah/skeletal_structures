@@ -16,7 +16,8 @@ impl<'a> IterTetrahedron3<'a> {
         }
     }
 
-    pub(super) fn ind(&self) -> usize {
+    /// Gets index
+    pub fn ind(&self) -> usize {
         self.ind_tetrahedron
     }
 

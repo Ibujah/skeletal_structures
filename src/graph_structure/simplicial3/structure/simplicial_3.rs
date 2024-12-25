@@ -381,6 +381,14 @@ impl Simplicial3 {
             .collect()
     }
 
+    /// Gets all tetrahedron iterators
+    pub fn get_all_tetrahedra(&self) -> Vec<IterTetrahedron3> {
+        (0..self.get_nb_tetrahedra())
+            .into_iter()
+            .map(|ind_tetra| IterTetrahedron3::new(self, ind_tetra))
+            .collect()
+    }
+
     ////////////////////////////////
     /// Public modifying methods ///
     ////////////////////////////////

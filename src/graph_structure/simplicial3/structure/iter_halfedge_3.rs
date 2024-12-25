@@ -62,6 +62,11 @@ impl<'a> IterHalfEdge3<'a> {
         self.xor0 ^ 3
     }
 
+    /// Gets index of first node
+    pub fn ind_first(&self) -> usize {
+        self.ind_first
+    }
+
     /// Gets node values
     pub fn node_values(&self) -> [usize; 2] {
         [
