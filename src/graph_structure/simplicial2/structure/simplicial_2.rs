@@ -177,7 +177,8 @@ impl Simplicial2 {
     /// Gets node halfedges indices
     pub fn node_halfedge_indices(&self, ind_node: usize) -> Vec<usize> {
         if let Some(vec) = &self.node_halfedges {
-            vec[ind_node].clone()
+            let nod_val = self.halfedge_first_node[ind_node];
+            vec[nod_val].clone()
         } else {
             let mut vec_he = Vec::new();
             let ind_he = ind_node;

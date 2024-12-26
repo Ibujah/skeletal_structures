@@ -20,3 +20,7 @@ env_logger="0.10.0"
 rand = "0.8.5"
 ctor = "0.2.6"
 rstest = "0.23.0"
+
+[[example]]
+name = "computation_time_2"
+path = "example/computation_time_2.rs"
