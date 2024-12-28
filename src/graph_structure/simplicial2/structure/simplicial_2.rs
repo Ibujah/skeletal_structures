@@ -321,6 +321,44 @@ impl Simplicial2 {
     /// Public modifying methods ///
     ////////////////////////////////
 
+    /// Replace node value by new value
+    pub fn replace_node_value(&mut self, old_value: usize, new_value: usize) -> Result<()> {
+        // check if new value is not already in the simplicial, and store old_value indices
+        println!("lala");
+        let mut old_val_ind = Vec::new();
+        for i in 0..self.halfedge_first_node.len() {
+            if self.halfedge_first_node[i] == new_value {
+                return Err(anyhow::Error::msg("New value already in simplicial"));
+            }
+            if self.halfedge_first_node[i] == old_value {
+                old_val_ind.push(i);
+            }
+        }
+        println!("lala");
+        // if old value is not in the simplicial, return
+        if old_val_ind.is_empty() {
+            println!("Old value not in simplicial");
+            return Ok(());
+        }
+
+        for ind in old_val_ind {
+            self.halfedge_first_node[ind] = new_value;
+        }
+
+        if let Some(vec) = &mut self.node_halfedges {
+            let nod_hedg = vec[old_value].clone();
+
+            vec[old_value].clear();
+
+            if vec.len() <= new_value {
+                vec.resize(new_value + 1, Vec::new());
+            }
+            vec[new_value] = nod_hedg;
+        }
+
+        Ok(())
+    }
+
     /// Inserts first triangle, and its opposite, in the structure
     pub fn insert_first_triangle(&mut self, nodes: [usize; 3]) -> Result<[usize; 2]> {
         if self.nb_triangles != 0 {
