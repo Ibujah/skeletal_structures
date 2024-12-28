@@ -324,7 +324,6 @@ impl Simplicial2 {
     /// Replace node value by new value
     pub fn replace_node_value(&mut self, old_value: usize, new_value: usize) -> Result<()> {
         // check if new value is not already in the simplicial, and store old_value indices
-        println!("lala");
         let mut old_val_ind = Vec::new();
         for i in 0..self.halfedge_first_node.len() {
             if self.halfedge_first_node[i] == new_value {
@@ -334,10 +333,8 @@ impl Simplicial2 {
                 old_val_ind.push(i);
             }
         }
-        println!("lala");
         // if old value is not in the simplicial, return
         if old_val_ind.is_empty() {
-            println!("Old value not in simplicial");
             return Ok(());
         }
 
