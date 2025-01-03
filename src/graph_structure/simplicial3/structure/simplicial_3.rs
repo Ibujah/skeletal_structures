@@ -221,9 +221,9 @@ impl Simplicial3 {
         Ok(())
     }
 
-    ////////////////////////////
+    ///////////////////////////
     /// Public find methods ///
-    ////////////////////////////
+    ///////////////////////////
 
     /// Checks if a node is in the simplicial
     pub fn find_node(&self, node: usize) -> Option<IterNode3> {
@@ -302,46 +302,32 @@ impl Simplicial3 {
         None
     }
 
-    ////////////////////////////////
-    /// Private browsing methods ///
-    ////////////////////////////////
-
-    /// Gets opposite halftriangle index
-    pub(super) fn get_halftriangle_opposite(&self, ind_halftriangle: usize) -> usize {
-        self.halftriangle_opposite[ind_halftriangle]
-    }
-
-    pub(super) fn get_opposite_halfedge(
-        &self,
-        ind_halftriangle: usize,
-        xor0: usize,
-        xor1: usize,
-        xor2: usize,
-    ) -> IterHalfEdge3 {
-        let ind_halftriangle_opposite = self.get_halftriangle_opposite(ind_halftriangle);
-
-        let (new_xor0, new_xor1, new_xor2) = match self.halftriangle_shift[ind_halftriangle] {
-            ShiftType::ABC2BAC => (xor2, xor1, xor0),
-            ShiftType::ABC2CBA => (xor1, xor0, xor2),
-            ShiftType::ABC2ACB => (xor0, xor2, xor1),
-            ShiftType::Unset => panic!(),
-        };
-        IterHalfEdge3::new(
-            self,
-            ind_halftriangle_opposite,
-            4 - new_xor0,
-            4 - new_xor1,
-            4 - new_xor2,
-        )
-    }
-
     ///////////////////////////////
     /// Public browsing methods ///
     ///////////////////////////////
 
+    /// Gets opposite halftriangle index
+    pub fn get_halftriangle_opposite(&self, ind_halftriangle: usize) -> usize {
+        self.halftriangle_opposite[ind_halftriangle]
+    }
+
     /// Gets node value
     pub fn node_value(&self, ind_node: usize) -> usize {
         self.tet_nodes[ind_node]
+    }
+
+    /// Gets list of node indices for given node
+    pub fn node_indices(&self, node: usize) -> Vec<usize> {
+        if let Some(position) = &self.node_positions {
+            position[node].clone()
+        } else {
+            self.tet_nodes
+                .iter()
+                .enumerate()
+                .filter(|(_, &val)| val == node)
+                .map(|(ind_nod, _)| ind_nod)
+                .collect()
+        }
     }
 
     /// Gets number of tetrahedra
@@ -350,7 +336,7 @@ impl Simplicial3 {
     }
 
     /// Gets triangle iterator from index
-    pub(super) fn get_halftriangle_from_index(&self, ind_htri: usize) -> Result<IterHalfTriangle3> {
+    pub fn get_halftriangle_from_index(&self, ind_htri: usize) -> Result<IterHalfTriangle3> {
         if ind_htri > self.get_nb_tetrahedra() << 2 {
             return Err(anyhow::Error::msg("Halftriangle index out of bounds"));
         }
