@@ -1,4 +1,4 @@
-use super::IterCellHalfEdge2;
+use super::IterDiagHalfEdge2;
 use super::IterNode2;
 use super::IterTriangle2;
 use super::Simplicial2;
@@ -60,8 +60,8 @@ impl<'a> IterHalfEdge2<'a> {
     }
 
     /// Get dual cell halfedge
-    pub fn dual(&self) -> IterCellHalfEdge2<'a> {
-        IterCellHalfEdge2::new(self.simplicial, self.ind_halfedge)
+    pub fn dual(&self) -> IterDiagHalfEdge2<'a> {
+        IterDiagHalfEdge2::new(self.simplicial, self.ind_halfedge)
     }
 
     /// Halfedge to string

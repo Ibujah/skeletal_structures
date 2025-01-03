@@ -1,19 +1,19 @@
-use super::IterCellHalfEdge2;
-use super::IterCellNode2;
+use super::IterDiagHalfEdge2;
+use super::IterDiagNode2;
 use super::IterNode2;
 use super::Simplicial2;
 
 #[derive(Copy, Clone)]
-/// Vertex iterator
-pub struct IterCell2<'a> {
+/// Dual cell iterator
+pub struct IterDiagCell2<'a> {
     simplicial: &'a Simplicial2,
     ind_halfedge: usize,
 }
 
-impl<'a> IterCell2<'a> {
+impl<'a> IterDiagCell2<'a> {
     /// Creates a new cell iterator from the given manifold triangular simplicial and index.
-    pub(super) fn new(simplicial: &'a Simplicial2, ind_halfedge: usize) -> IterCell2<'a> {
-        IterCell2 {
+    pub(super) fn new(simplicial: &'a Simplicial2, ind_halfedge: usize) -> IterDiagCell2<'a> {
+        IterDiagCell2 {
             simplicial,
             ind_halfedge,
         }
@@ -24,8 +24,8 @@ impl<'a> IterCell2<'a> {
         self.simplicial.halfedge_first_node_value(self.ind_halfedge)
     }
 
-    /// Gets list of cell halfedges surrouding the cell
-    pub fn cell_halfedges(&self) -> Vec<IterCellHalfEdge2<'a>> {
+    /// Gets list of halfedges surrouding the cell
+    pub fn halfedges(&self) -> Vec<IterDiagHalfEdge2<'a>> {
         self.dual()
             .halfedges()
             .iter()
@@ -33,8 +33,8 @@ impl<'a> IterCell2<'a> {
             .collect()
     }
 
-    /// Gets list of cell nodes surrouding the cell
-    pub fn cell_nodes(&self) -> Vec<IterCellNode2<'a>> {
+    /// Gets list of nodes surrouding the cell
+    pub fn nodes(&self) -> Vec<IterDiagNode2<'a>> {
         self.dual()
             .halfedges()
             .iter()
@@ -49,6 +49,6 @@ impl<'a> IterCell2<'a> {
 
     /// Cell to string
     pub fn to_string(&self) -> String {
-        format!("Cell {}", self.value(),)
+        format!("Diagram Cell {}", self.value(),)
     }
 }

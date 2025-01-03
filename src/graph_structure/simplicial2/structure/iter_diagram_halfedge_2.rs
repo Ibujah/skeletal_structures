@@ -1,16 +1,16 @@
-use super::{IterCellNode2, IterHalfEdge2, Simplicial2};
+use super::{IterDiagNode2, IterHalfEdge2, Simplicial2};
 
 #[derive(Copy, Clone)]
-/// Halfedge iterator
-pub struct IterCellHalfEdge2<'a> {
+/// Diagram halfedge iterator
+pub struct IterDiagHalfEdge2<'a> {
     simplicial: &'a Simplicial2,
     ind_halfedge: usize,
 }
 
-impl<'a> IterCellHalfEdge2<'a> {
-    /// Creates a new halfedge iterator from the given manifold triangular mesh and index.
-    pub(super) fn new(simplicial: &'a Simplicial2, ind_halfedge: usize) -> IterCellHalfEdge2<'a> {
-        IterCellHalfEdge2 {
+impl<'a> IterDiagHalfEdge2<'a> {
+    /// Creates a new dual halfedge iterator from the given manifold triangular mesh and index.
+    pub(super) fn new(simplicial: &'a Simplicial2, ind_halfedge: usize) -> IterDiagHalfEdge2<'a> {
+        IterDiagHalfEdge2 {
             simplicial,
             ind_halfedge,
         }
@@ -21,35 +21,35 @@ impl<'a> IterCellHalfEdge2<'a> {
         IterHalfEdge2::new(self.simplicial, self.ind_halfedge)
     }
 
-    /// Get opposite halfedge
-    pub fn opposite(&self) -> IterCellHalfEdge2<'a> {
+    /// Get opposite diagram halfedge
+    pub fn opposite(&self) -> IterDiagHalfEdge2<'a> {
         self.dual().opposite().dual()
     }
 
-    /// Get first node of the cell halfedge
-    pub fn first_node(&self) -> IterCellNode2<'a> {
+    /// Get first node of the diagram halfedge
+    pub fn first_node(&self) -> IterDiagNode2<'a> {
         self.dual().triangle().dual()
     }
 
-    /// Get last node of the cell halfedge
-    pub fn last_node(&self) -> IterCellNode2<'a> {
+    /// Get last node of the diagram halfedge
+    pub fn last_node(&self) -> IterDiagNode2<'a> {
         self.dual().opposite().triangle().dual()
     }
 
-    /// Next cell edge
-    pub fn next(&self) -> IterCellHalfEdge2<'a> {
+    /// Next diagram edge
+    pub fn next(&self) -> IterDiagHalfEdge2<'a> {
         self.dual().opposite().next().dual()
     }
 
-    /// Previous cell edge
-    pub fn previous(&self) -> IterCellHalfEdge2<'a> {
+    /// Previous diagram edge
+    pub fn previous(&self) -> IterDiagHalfEdge2<'a> {
         self.dual().previous().opposite().dual()
     }
 
     /// Halfedge to string
     pub fn to_string(&self) -> String {
         format!(
-            "CellEdge {} -> {}",
+            "Diagram Edge {} -> {}",
             self.first_node().index(),
             self.last_node().index()
         )

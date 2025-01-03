@@ -322,14 +322,18 @@ impl Simplicial2 {
     ////////////////////////////////
 
     /// Replace node value by new value
-    pub fn replace_node_value(&mut self, old_value: usize, new_value: usize) -> Result<()> {
+    pub fn replace_node_value(
+        &mut self,
+        old_node_value: usize,
+        new_node_value: usize,
+    ) -> Result<()> {
         // check if new value is not already in the simplicial, and store old_value indices
         let mut old_val_ind = Vec::new();
         for i in 0..self.halfedge_first_node.len() {
-            if self.halfedge_first_node[i] == new_value {
-                return Err(anyhow::Error::msg("New value already in simplicial"));
+            if self.halfedge_first_node[i] == new_node_value {
+                return Err(anyhow::Error::msg("New node value already in simplicial"));
             }
-            if self.halfedge_first_node[i] == old_value {
+            if self.halfedge_first_node[i] == old_node_value {
                 old_val_ind.push(i);
             }
         }
@@ -339,18 +343,18 @@ impl Simplicial2 {
         }
 
         for ind in old_val_ind {
-            self.halfedge_first_node[ind] = new_value;
+            self.halfedge_first_node[ind] = new_node_value;
         }
 
         if let Some(vec) = &mut self.node_halfedges {
-            let nod_hedg = vec[old_value].clone();
+            let nod_hedg = vec[old_node_value].clone();
 
-            vec[old_value].clear();
+            vec[old_node_value].clear();
 
-            if vec.len() <= new_value {
-                vec.resize(new_value + 1, Vec::new());
+            if vec.len() <= new_node_value {
+                vec.resize(new_node_value + 1, Vec::new());
             }
-            vec[new_value] = nod_hedg;
+            vec[new_node_value] = nod_hedg;
         }
 
         Ok(())

@@ -1,6 +1,6 @@
 use super::Simplicial2;
 
-use super::IterCell2;
+use super::IterDiagCell2;
 use super::IterHalfEdge2;
 
 #[derive(Copy, Clone)]
@@ -34,8 +34,8 @@ impl<'a> IterNode2<'a> {
     }
 
     /// Get dual cell
-    pub fn dual(&self) -> IterCell2<'a> {
-        IterCell2::new(self.simplicial, self.ind_halfedge)
+    pub fn dual(&self) -> IterDiagCell2<'a> {
+        IterDiagCell2::new(self.simplicial, self.ind_halfedge)
     }
 
     /// Node to string

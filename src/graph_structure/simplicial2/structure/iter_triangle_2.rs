@@ -1,4 +1,4 @@
-use super::IterCellNode2;
+use super::IterDiagNode2;
 use super::IterHalfEdge2;
 use super::IterNode2;
 use super::Simplicial2;
@@ -48,8 +48,8 @@ impl<'a> IterTriangle2<'a> {
     }
 
     /// Get dual cell node
-    pub fn dual(&self) -> IterCellNode2<'a> {
-        IterCellNode2::new(self.simplicial, self.ind_triangle)
+    pub fn dual(&self) -> IterDiagNode2<'a> {
+        IterDiagNode2::new(self.simplicial, self.ind_triangle)
     }
 
     /// Triangle to string
