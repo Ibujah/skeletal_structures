@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod simplicial3_test {
     use anyhow::Result;
+    use rand::Rng;
     use rstest::rstest;
 
     use crate::graph_structure::simplicial3::{
@@ -147,32 +148,37 @@ mod simplicial3_test {
 
     #[test]
     fn insert_bw_test() -> Result<()> {
-        let mut simpl = Simplicial3::new(false);
+        env_logger::init();
+        let mut rng = rand::thread_rng();
 
+        let mut simpl = Simplicial3::new(false);
         simpl.first_tetrahedron([0, 1, 2, 3])?;
 
-        let mut bw_inserter = BowyerWatsonInserter::new(&mut simpl, 1);
+        for ind_nod in 4..10 {
+            let nb_max = std::cmp::min(10, (simpl.get_nb_tetrahedra() >> 1) - 1);
+            let nb_insert = if nb_max != 0 {
+                rng.gen_range(0..nb_max)
+            } else {
+                0
+            };
 
-        while let Some(_) = bw_inserter.bw_tetra_to_check() {
-            bw_inserter.bw_keep_tetra()?;
+            let ind_first = rng.gen_range(0..simpl.get_nb_tetrahedra());
+            log::info!("{}, {}", ind_nod, nb_insert);
+
+            let mut bw_inserter = BowyerWatsonInserter::new(&mut simpl, ind_first);
+
+            for _ in 0..nb_insert {
+                if let Some(_) = bw_inserter.bw_tetra_to_check() {
+                    bw_inserter.bw_rem_tetra()?;
+                }
+            }
+
+            while let Some(_) = bw_inserter.bw_tetra_to_check() {
+                bw_inserter.bw_keep_tetra()?;
+            }
+
+            bw_inserter.bw_insert_node(ind_nod)?;
         }
-
-        bw_inserter.bw_insert_node(4)?;
-
-        assert!(simplicial3_is_valid(&simpl)?);
-
-        let mut bw_inserter = BowyerWatsonInserter::new(&mut simpl, 3);
-
-        if let Some(_) = bw_inserter.bw_tetra_to_check() {
-            bw_inserter.bw_rem_tetra()?;
-        }
-
-        while let Some(_) = bw_inserter.bw_tetra_to_check() {
-            bw_inserter.bw_keep_tetra()?;
-        }
-
-        bw_inserter.bw_insert_node(10)?;
-
         assert!(simplicial3_is_valid(&simpl)?);
 
         Ok(())

@@ -47,6 +47,14 @@ impl<'a> BowyerWatsonInserter<'a> {
                 {
                     let ind_first = ind_tetra << 2;
                     self.ind_tetra_cur = Some(ind_tetra);
+                    // log::info!(
+                    //     "checking tetra: {}, [{}, {}, {}, {}]",
+                    //     ind_tetra,
+                    //     self.simplicial.tet_nodes[ind_first],
+                    //     self.simplicial.tet_nodes[ind_first + 1],
+                    //     self.simplicial.tet_nodes[ind_first + 2],
+                    //     self.simplicial.tet_nodes[ind_first + 3],
+                    // );
                     return Some([
                         self.simplicial.tet_nodes[ind_first],
                         self.simplicial.tet_nodes[ind_first + 1],
@@ -92,6 +100,38 @@ impl<'a> BowyerWatsonInserter<'a> {
         self.tet_to_check.push(opp_tet1);
         self.tet_to_check.push(opp_tet2);
         self.tet_to_check.push(opp_tet3);
+        // log::info!(
+        //     "added to check: {}, [{}, {}, {}, {}]",
+        //     opp_tet0,
+        //     self.simplicial.tet_nodes[opp_tet0 << 2],
+        //     self.simplicial.tet_nodes[(opp_tet0 << 2) + 1],
+        //     self.simplicial.tet_nodes[(opp_tet0 << 2) + 2],
+        //     self.simplicial.tet_nodes[(opp_tet0 << 2) + 3],
+        // );
+        // log::info!(
+        //     "added to check: {}, [{}, {}, {}, {}]",
+        //     opp_tet1,
+        //     self.simplicial.tet_nodes[opp_tet1 << 2],
+        //     self.simplicial.tet_nodes[(opp_tet1 << 2) + 1],
+        //     self.simplicial.tet_nodes[(opp_tet1 << 2) + 2],
+        //     self.simplicial.tet_nodes[(opp_tet1 << 2) + 3],
+        // );
+        // log::info!(
+        //     "added to check: {}, [{}, {}, {}, {}]",
+        //     opp_tet2,
+        //     self.simplicial.tet_nodes[opp_tet2 << 2],
+        //     self.simplicial.tet_nodes[(opp_tet2 << 2) + 1],
+        //     self.simplicial.tet_nodes[(opp_tet2 << 2) + 2],
+        //     self.simplicial.tet_nodes[(opp_tet2 << 2) + 3],
+        // );
+        // log::info!(
+        //     "added to check: {}, [{}, {}, {}, {}]",
+        //     opp_tet3,
+        //     self.simplicial.tet_nodes[opp_tet3 << 2],
+        //     self.simplicial.tet_nodes[(opp_tet3 << 2) + 1],
+        //     self.simplicial.tet_nodes[(opp_tet3 << 2) + 2],
+        //     self.simplicial.tet_nodes[(opp_tet3 << 2) + 3],
+        // );
 
         // check ind_tetra and and it to the remove list
         self.should_rem_tet[ind_tetra] = true;
@@ -211,6 +251,17 @@ impl<'a> BowyerWatsonInserter<'a> {
             ));
         }
 
+        for ind_tetra in self.tet_to_rem.iter() {
+            log::info!(
+                "removing tetra: {}, [{}, {}, {}, {}]",
+                ind_tetra,
+                self.simplicial.tet_nodes[ind_tetra << 2],
+                self.simplicial.tet_nodes[(ind_tetra << 2) + 1],
+                self.simplicial.tet_nodes[(ind_tetra << 2) + 2],
+                self.simplicial.tet_nodes[(ind_tetra << 2) + 3],
+            );
+        }
+
         // 1 - find boundary triangle
         let ind_tri_first = self.find_first_boundary_triangle()?;
 
@@ -233,6 +284,17 @@ impl<'a> BowyerWatsonInserter<'a> {
             self.simplicial
                 .set_tetrahedron(ind_tet, node, nod2, nod0, nod1);
             added_tets.push(ind_tet);
+        }
+
+        for ind_tetra in added_tets.iter() {
+            log::info!(
+                "adding tetra: {}, [{}, {}, {}, {}]",
+                ind_tetra,
+                self.simplicial.tet_nodes[ind_tetra << 2],
+                self.simplicial.tet_nodes[(ind_tetra << 2) + 1],
+                self.simplicial.tet_nodes[(ind_tetra << 2) + 2],
+                self.simplicial.tet_nodes[(ind_tetra << 2) + 3],
+            );
         }
 
         // 4 - create links
@@ -269,8 +331,16 @@ impl<'a> BowyerWatsonInserter<'a> {
             }
         }
 
+        self.tet_to_rem.sort();
+
         while let Some(ind_tet_remove) = self.tet_to_rem.pop() {
             self.simplicial.remove_tetrahedron(ind_tet_remove)?;
+            for i in 0..added_tets.len() {
+                if added_tets[i] == self.simplicial.get_nb_tetrahedra() {
+                    added_tets[i] = ind_tet_remove;
+                    break;
+                }
+            }
         }
 
         Ok(added_tets)

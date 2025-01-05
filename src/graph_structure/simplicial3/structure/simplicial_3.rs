@@ -72,7 +72,7 @@ impl Simplicial3 {
     }
 
     pub(super) fn unset_tetrahedron(&mut self, ind_tet: usize) {
-        let ind_first = ind_tet * 4;
+        let ind_first = ind_tet << 2;
 
         let nod0 = self.tet_nodes[ind_first];
         let nod1 = self.tet_nodes[ind_first + 1];
@@ -205,6 +205,20 @@ impl Simplicial3 {
 
         let [a, _, _] = tri0.node_values();
         let [d, e, f] = tri1.node_values();
+
+        // let n0 = IterHalfTriangle3::new(self, htri0).node_values();
+        // let n1 = IterHalfTriangle3::new(self, htri1).node_values();
+        // log::info!(
+        //     "Oppose auto: {} [{}, {}, {}] and {} [{}, {}, {}]",
+        //     htri0,
+        //     n0[0],
+        //     n0[1],
+        //     n0[2],
+        //     htri1,
+        //     n1[0],
+        //     n1[1],
+        //     n1[2],
+        // );
 
         let shift = if a == d {
             ShiftType::ABC2ACB
