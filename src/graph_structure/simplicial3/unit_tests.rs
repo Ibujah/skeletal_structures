@@ -154,6 +154,7 @@ mod simplicial3_test {
         let mut simpl = Simplicial3::new(false);
         simpl.first_tetrahedron([0, 1, 2, 3])?;
 
+        let mut bw_inserter = BowyerWatsonInserter::new(&simpl);
         for ind_nod in 4..10 {
             let nb_max = std::cmp::min(10, (simpl.get_nb_tetrahedra() >> 1) - 1);
             let nb_insert = if nb_max != 0 {
@@ -165,20 +166,20 @@ mod simplicial3_test {
             let ind_first = rng.gen_range(0..simpl.get_nb_tetrahedra());
             log::info!("{}, {}", ind_nod, nb_insert);
 
-            let mut bw_inserter = BowyerWatsonInserter::new(&mut simpl, ind_first);
-
+            bw_inserter.set_first_tetra(&simpl, ind_first)?;
             for _ in 0..nb_insert {
-                if let Some(_) = bw_inserter.bw_tetra_to_check() {
-                    bw_inserter.bw_rem_tetra()?;
+                if let Some(_) = bw_inserter.bw_tetra_to_check(&simpl) {
+                    bw_inserter.bw_rem_tetra(&simpl)?;
                 }
             }
 
-            while let Some(_) = bw_inserter.bw_tetra_to_check() {
+            while let Some(_) = bw_inserter.bw_tetra_to_check(&simpl) {
                 bw_inserter.bw_keep_tetra()?;
             }
 
-            bw_inserter.bw_insert_node(ind_nod)?;
+            bw_inserter.bw_insert_node(&mut simpl, ind_nod)?;
         }
+        bw_inserter.clean(&mut simpl)?;
         assert!(simplicial3_is_valid(&simpl)?);
 
         Ok(())
