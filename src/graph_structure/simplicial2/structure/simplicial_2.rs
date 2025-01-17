@@ -1,5 +1,4 @@
 use anyhow::Result;
-use std::cmp::max;
 
 use super::IterHalfEdge2;
 use super::IterNode2;
@@ -39,65 +38,6 @@ impl Simplicial2 {
             node_halfedges,
             nb_triangles: 0,
         }
-    }
-
-    /////////////////////////////
-    /// Private build methods ///
-    /////////////////////////////
-
-    pub(super) fn add_empty_triangle(&mut self) -> usize {
-        self.halfedge_first_node
-            .resize(self.halfedge_first_node.len() + 3, 0);
-        self.halfedge_opposite
-            .resize(self.halfedge_opposite.len() + 3, 0);
-
-        self.nb_triangles = self.nb_triangles + 1;
-
-        self.nb_triangles - 1
-    }
-
-    pub(super) fn set_triangle(
-        &mut self,
-        ind_tri: usize,
-        nod1: usize,
-        nod2: usize,
-        nod3: usize,
-    ) -> [usize; 3] {
-        let ind_first = ind_tri * 3;
-        self.halfedge_first_node[ind_first] = nod1;
-        self.halfedge_first_node[ind_first + 1] = nod2;
-        self.halfedge_first_node[ind_first + 2] = nod3;
-
-        if let Some(vec) = self.node_halfedges.as_mut() {
-            let max_nod = max(max(nod1, nod2), nod3);
-            if vec.len() <= max_nod {
-                vec.resize(max_nod + 1, Vec::new());
-            }
-            vec[nod1].push(ind_first);
-            vec[nod2].push(ind_first + 1);
-            vec[nod3].push(ind_first + 2);
-        }
-
-        [ind_first, ind_first + 1, ind_first + 2]
-    }
-
-    pub(super) fn unset_triangle(&mut self, ind_tri: usize) -> usize {
-        if let Some(vec) = self.node_halfedges.as_mut() {
-            let ind_first = ind_tri * 3;
-            let nod1 = self.halfedge_first_node[ind_first];
-            let nod2 = self.halfedge_first_node[ind_first + 1];
-            let nod3 = self.halfedge_first_node[ind_first + 2];
-
-            vec[nod1].retain(|&ind_he| ind_he != ind_first);
-            vec[nod2].retain(|&ind_he| ind_he != (ind_first + 1));
-            vec[nod3].retain(|&ind_he| ind_he != (ind_first + 2));
-        }
-        ind_tri
-    }
-
-    pub(super) fn oppose_halfedges(&mut self, he0: usize, he1: usize) {
-        self.halfedge_opposite[he0] = he1;
-        self.halfedge_opposite[he1] = he0;
     }
 
     ////////////////////////////
@@ -254,10 +194,6 @@ impl Simplicial2 {
 
         [ind_first, ind_first + 1, ind_first + 2]
     }
-
-    ///////////////////////////////
-    /// Public browsing methods ///
-    ///////////////////////////////
 
     /// Gets total number of halfedges
     pub fn get_nb_halfedges(&self) -> usize {

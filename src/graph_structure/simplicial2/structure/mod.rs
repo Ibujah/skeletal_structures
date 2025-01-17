@@ -26,5 +26,5 @@ pub use iter_diagram_halfedge_2::IterDiagHalfEdge2;
 mod iter_diagram_node_2;
 pub use iter_diagram_node_2::IterDiagNode2;
 
-mod simplicial_2_update;
-pub use simplicial_2_update::*;
+mod build_simplicial_2;
+pub use build_simplicial_2::*;

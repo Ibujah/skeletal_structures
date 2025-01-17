@@ -1,6 +1,68 @@
 use anyhow::Result;
 
 use super::Simplicial2;
+use std::cmp::max;
+
+/////////////////////////////
+/// Private build methods ///
+/////////////////////////////
+
+fn add_empty_triangle(simpl: &mut Simplicial2) -> usize {
+    simpl
+        .halfedge_first_node
+        .resize(simpl.halfedge_first_node.len() + 3, 0);
+    simpl
+        .halfedge_opposite
+        .resize(simpl.halfedge_opposite.len() + 3, 0);
+
+    simpl.nb_triangles = simpl.nb_triangles + 1;
+
+    simpl.nb_triangles - 1
+}
+
+fn set_triangle(
+    simpl: &mut Simplicial2,
+    ind_tri: usize,
+    nod1: usize,
+    nod2: usize,
+    nod3: usize,
+) -> [usize; 3] {
+    let ind_first = ind_tri * 3;
+    simpl.halfedge_first_node[ind_first] = nod1;
+    simpl.halfedge_first_node[ind_first + 1] = nod2;
+    simpl.halfedge_first_node[ind_first + 2] = nod3;
+
+    if let Some(vec) = simpl.node_halfedges.as_mut() {
+        let max_nod = max(max(nod1, nod2), nod3);
+        if vec.len() <= max_nod {
+            vec.resize(max_nod + 1, Vec::new());
+        }
+        vec[nod1].push(ind_first);
+        vec[nod2].push(ind_first + 1);
+        vec[nod3].push(ind_first + 2);
+    }
+
+    [ind_first, ind_first + 1, ind_first + 2]
+}
+
+fn unset_triangle(simpl: &mut Simplicial2, ind_tri: usize) -> usize {
+    if let Some(vec) = simpl.node_halfedges.as_mut() {
+        let ind_first = ind_tri * 3;
+        let nod1 = simpl.halfedge_first_node[ind_first];
+        let nod2 = simpl.halfedge_first_node[ind_first + 1];
+        let nod3 = simpl.halfedge_first_node[ind_first + 2];
+
+        vec[nod1].retain(|&ind_he| ind_he != ind_first);
+        vec[nod2].retain(|&ind_he| ind_he != (ind_first + 1));
+        vec[nod3].retain(|&ind_he| ind_he != (ind_first + 2));
+    }
+    ind_tri
+}
+
+fn oppose_halfedges(simpl: &mut Simplicial2, he0: usize, he1: usize) {
+    simpl.halfedge_opposite[he0] = he1;
+    simpl.halfedge_opposite[he1] = he0;
+}
 
 ////////////////////////////////
 /// Public modifying methods ///
@@ -53,15 +115,15 @@ pub fn insert_first_triangle(simpl: &mut Simplicial2, nodes: [usize; 3]) -> Resu
 
     let [n0, n1, n2] = nodes;
 
-    let ind_tri0 = simpl.add_empty_triangle();
-    let ind_tri1 = simpl.add_empty_triangle();
+    let ind_tri0 = add_empty_triangle(simpl);
+    let ind_tri1 = add_empty_triangle(simpl);
 
-    let [h01, h12, h20] = simpl.set_triangle(ind_tri0, n0, n1, n2);
-    let [h02, h21, h10] = simpl.set_triangle(ind_tri1, n0, n2, n1);
+    let [h01, h12, h20] = set_triangle(simpl, ind_tri0, n0, n1, n2);
+    let [h02, h21, h10] = set_triangle(simpl, ind_tri1, n0, n2, n1);
 
-    simpl.oppose_halfedges(h01, h10);
-    simpl.oppose_halfedges(h12, h21);
-    simpl.oppose_halfedges(h20, h02);
+    oppose_halfedges(simpl, h01, h10);
+    oppose_halfedges(simpl, h12, h21);
+    oppose_halfedges(simpl, h20, h02);
 
     Ok([ind_tri0, ind_tri1])
 }
@@ -78,21 +140,21 @@ pub fn insert_node_within_triangle(
     let h21 = simpl.halfedge_opposite_index(h12);
     let h02 = simpl.halfedge_opposite_index(h20);
 
-    let ind_tri0 = simpl.unset_triangle(ind_tri);
-    let ind_tri1 = simpl.add_empty_triangle();
-    let ind_tri2 = simpl.add_empty_triangle();
+    let ind_tri0 = unset_triangle(simpl, ind_tri);
+    let ind_tri1 = add_empty_triangle(simpl);
+    let ind_tri2 = add_empty_triangle(simpl);
 
-    let [h01, h1n, hn0] = simpl.set_triangle(ind_tri0, n0, n1, node);
-    let [h12, h2n, hn1] = simpl.set_triangle(ind_tri1, n1, n2, node);
-    let [h20, h0n, hn2] = simpl.set_triangle(ind_tri2, n2, n0, node);
+    let [h01, h1n, hn0] = set_triangle(simpl, ind_tri0, n0, n1, node);
+    let [h12, h2n, hn1] = set_triangle(simpl, ind_tri1, n1, n2, node);
+    let [h20, h0n, hn2] = set_triangle(simpl, ind_tri2, n2, n0, node);
 
-    simpl.oppose_halfedges(h10, h01);
-    simpl.oppose_halfedges(h12, h21);
-    simpl.oppose_halfedges(h20, h02);
+    oppose_halfedges(simpl, h10, h01);
+    oppose_halfedges(simpl, h12, h21);
+    oppose_halfedges(simpl, h20, h02);
 
-    simpl.oppose_halfedges(h0n, hn0);
-    simpl.oppose_halfedges(h1n, hn1);
-    simpl.oppose_halfedges(h2n, hn2);
+    oppose_halfedges(simpl, h0n, hn0);
+    oppose_halfedges(simpl, h1n, hn1);
+    oppose_halfedges(simpl, h2n, hn2);
 
     Ok([ind_tri, simpl.nb_triangles - 2, simpl.nb_triangles - 1])
 }
@@ -122,27 +184,29 @@ pub fn flip_halfedge(simpl: &mut Simplicial2, ind_he: usize) -> Result<[usize; 2
     let ind_tri1 = simpl.halfedge_triangle_index(ind_he);
     let ind_tri2 = simpl.halfedge_triangle_index(ind_he_opp);
 
-    let [hbc, hcd, hdb] = simpl.set_triangle(ind_tri1, nb, nc, nd);
-    let [hda, hab, hbd] = simpl.set_triangle(ind_tri2, nd, na, nb);
+    let [hbc, hcd, hdb] = set_triangle(simpl, ind_tri1, nb, nc, nd);
+    let [hda, hab, hbd] = set_triangle(simpl, ind_tri2, nd, na, nb);
 
-    simpl.oppose_halfedges(hab, hba);
-    simpl.oppose_halfedges(hbc, hcb);
-    simpl.oppose_halfedges(hcd, hdc);
-    simpl.oppose_halfedges(hda, had);
+    oppose_halfedges(simpl, hab, hba);
+    oppose_halfedges(simpl, hbc, hcb);
+    oppose_halfedges(simpl, hcd, hdc);
+    oppose_halfedges(simpl, hda, had);
 
-    simpl.oppose_halfedges(hbd, hdb);
+    oppose_halfedges(simpl, hbd, hdb);
 
     Ok([hbd, hdb])
 }
 
 /// Builds full simplicial from set of triangles
-pub fn insert_triangle_list(simpl: &mut Simplicial2, triangles: Vec<[usize; 3]>) -> Result<()> {
-    if simpl.get_nb_triangles() != 0 {
-        return Err(anyhow::Error::msg("Simplicial should be empty"));
-    }
+pub fn build_from_triangle_list(
+    triangles: Vec<[usize; 3]>,
+    register_node_halfedges: bool,
+) -> Result<Simplicial2> {
+    let mut simpl = Simplicial2::new(register_node_halfedges);
+
     for &[nod0, nod1, nod2] in triangles.iter() {
-        let ind_tri = simpl.add_empty_triangle();
-        simpl.set_triangle(ind_tri, nod0, nod1, nod2);
+        let ind_tri = add_empty_triangle(&mut simpl);
+        set_triangle(&mut simpl, ind_tri, nod0, nod1, nod2);
     }
 
     let mut to_attribute: Vec<usize> = (0..simpl.get_nb_halfedges()).collect();
@@ -155,7 +219,7 @@ pub fn insert_triangle_list(simpl: &mut Simplicial2, triangles: Vec<[usize; 3]>)
             let n0o = simpl.halfedge_first_node_value(ind_he_opp);
             let n1o = simpl.halfedge_last_node_value(ind_he_opp);
             if n0 == n1o && n1 == n0o {
-                simpl.oppose_halfedges(ind_he, ind_he_opp);
+                oppose_halfedges(&mut simpl, ind_he, ind_he_opp);
                 to_attribute.remove(i);
                 found = true;
                 break;
@@ -168,5 +232,5 @@ pub fn insert_triangle_list(simpl: &mut Simplicial2, triangles: Vec<[usize; 3]>)
         }
     }
 
-    Ok(())
+    Ok(simpl)
 }
