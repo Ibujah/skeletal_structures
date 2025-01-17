@@ -4,12 +4,13 @@ mod simplicial2_test {
 
     use super::super::functions::simplicial2_is_valid;
     use super::super::structure::Simplicial2;
+    use super::super::structure::{insert_first_triangle, insert_node_within_triangle};
 
     #[test]
     fn insert_test() -> Result<()> {
         let mut simpl = Simplicial2::new(false);
 
-        let [_, ind_tri1] = simpl.insert_first_triangle([0, 1, 2])?;
+        let [_, ind_tri1] = insert_first_triangle(&mut simpl, [0, 1, 2])?;
 
         assert!(simplicial2_is_valid(&simpl)?);
         assert!(simpl.get_nb_triangles() == 2);
@@ -50,7 +51,7 @@ mod simplicial2_test {
         assert!(he02.first_node().value() == 0);
         assert!(he02.last_node().value() == 2);
 
-        simpl.insert_node_within_triangle(3, ind_tri1)?;
+        insert_node_within_triangle(&mut simpl, 3, ind_tri1)?;
 
         assert!(simpl.get_nb_triangles() == 4);
         assert!(simpl.find_triangle(0, 1, 2).is_some());
@@ -65,7 +66,7 @@ mod simplicial2_test {
     #[test]
     fn node_register_test() -> Result<()> {
         let mut simpl = Simplicial2::new(true);
-        let [_, ind_tri1] = simpl.insert_first_triangle([0, 1, 2])?;
+        let [_, ind_tri1] = insert_first_triangle(&mut simpl, [0, 1, 2])?;
 
         assert!(simplicial2_is_valid(&simpl)?);
         assert!(simpl.get_nb_triangles() == 2);
@@ -106,7 +107,7 @@ mod simplicial2_test {
         assert!(he02.first_node().value() == 0);
         assert!(he02.last_node().value() == 2);
 
-        simpl.insert_node_within_triangle(3, ind_tri1)?;
+        insert_node_within_triangle(&mut simpl, 3, ind_tri1)?;
 
         assert!(simpl.get_nb_triangles() == 4);
         assert!(simpl.find_triangle(0, 1, 2).is_some());

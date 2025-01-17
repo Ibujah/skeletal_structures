@@ -3,6 +3,9 @@ use rand::Rng;
 use std::time::Instant;
 
 use skeletal_structures::graph_structure::simplicial2::Simplicial2;
+use skeletal_structures::graph_structure::simplicial2::{
+    insert_first_triangle, insert_node_within_triangle,
+};
 
 fn generate_random_simplicial_2(
     nb_vert: usize,
@@ -12,11 +15,11 @@ fn generate_random_simplicial_2(
 
     let mut simpl_2 = Simplicial2::new(register_node_halfedges);
 
-    simpl_2.insert_first_triangle([0, 1, 2])?;
+    insert_first_triangle(&mut simpl_2, [0, 1, 2])?;
 
     for ind_nod in 3..nb_vert {
         let ind_tri = rng.gen_range(0..simpl_2.get_nb_triangles());
-        simpl_2.insert_node_within_triangle(ind_nod, ind_tri)?;
+        insert_node_within_triangle(&mut simpl_2, ind_nod, ind_tri)?;
     }
 
     Ok(simpl_2)

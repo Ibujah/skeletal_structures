@@ -16,13 +16,13 @@ pub struct Simplicial2 {
     // such that he3 = next(he2)
     // such that he1 = next(he3)
     // only first node is stored (last node is the next one, taking account of the %3)
-    halfedge_first_node: Vec<usize>,
-    halfedge_opposite: Vec<usize>,
+    pub(super) halfedge_first_node: Vec<usize>,
+    pub(super) halfedge_opposite: Vec<usize>,
 
     // optional attribute, containing indices of halfedges starting at given node
-    node_halfedges: Option<Vec<Vec<usize>>>,
+    pub(super) node_halfedges: Option<Vec<Vec<usize>>>,
 
-    nb_triangles: usize,
+    pub(super) nb_triangles: usize,
 }
 
 impl Simplicial2 {
@@ -45,7 +45,7 @@ impl Simplicial2 {
     /// Private build methods ///
     /////////////////////////////
 
-    fn add_empty_triangle(&mut self) -> usize {
+    pub(super) fn add_empty_triangle(&mut self) -> usize {
         self.halfedge_first_node
             .resize(self.halfedge_first_node.len() + 3, 0);
         self.halfedge_opposite
@@ -56,7 +56,7 @@ impl Simplicial2 {
         self.nb_triangles - 1
     }
 
-    fn set_triangle(
+    pub(super) fn set_triangle(
         &mut self,
         ind_tri: usize,
         nod1: usize,
@@ -81,7 +81,7 @@ impl Simplicial2 {
         [ind_first, ind_first + 1, ind_first + 2]
     }
 
-    fn unset_triangle(&mut self, ind_tri: usize) -> usize {
+    pub(super) fn unset_triangle(&mut self, ind_tri: usize) -> usize {
         if let Some(vec) = self.node_halfedges.as_mut() {
             let ind_first = ind_tri * 3;
             let nod1 = self.halfedge_first_node[ind_first];
@@ -95,7 +95,7 @@ impl Simplicial2 {
         ind_tri
     }
 
-    fn oppose_halfedges(&mut self, he0: usize, he1: usize) {
+    pub(super) fn oppose_halfedges(&mut self, he0: usize, he1: usize) {
         self.halfedge_opposite[he0] = he1;
         self.halfedge_opposite[he1] = he0;
     }
@@ -315,175 +315,6 @@ impl Simplicial2 {
         } else {
             None
         }
-    }
-
-    ////////////////////////////////
-    /// Public modifying methods ///
-    ////////////////////////////////
-
-    /// Replace node value by new value
-    pub fn replace_node_value(
-        &mut self,
-        old_node_value: usize,
-        new_node_value: usize,
-    ) -> Result<()> {
-        // check if new value is not already in the simplicial, and store old_value indices
-        let mut old_val_ind = Vec::new();
-        for i in 0..self.halfedge_first_node.len() {
-            if self.halfedge_first_node[i] == new_node_value {
-                return Err(anyhow::Error::msg("New node value already in simplicial"));
-            }
-            if self.halfedge_first_node[i] == old_node_value {
-                old_val_ind.push(i);
-            }
-        }
-        // if old value is not in the simplicial, return
-        if old_val_ind.is_empty() {
-            return Ok(());
-        }
-
-        for ind in old_val_ind {
-            self.halfedge_first_node[ind] = new_node_value;
-        }
-
-        if let Some(vec) = &mut self.node_halfedges {
-            let nod_hedg = vec[old_node_value].clone();
-
-            vec[old_node_value].clear();
-
-            if vec.len() <= new_node_value {
-                vec.resize(new_node_value + 1, Vec::new());
-            }
-            vec[new_node_value] = nod_hedg;
-        }
-
-        Ok(())
-    }
-
-    /// Inserts first triangle, and its opposite, in the structure
-    pub fn insert_first_triangle(&mut self, nodes: [usize; 3]) -> Result<[usize; 2]> {
-        if self.nb_triangles != 0 {
-            return Err(anyhow::Error::msg("Already triangles in simplicial"));
-        }
-
-        let [n0, n1, n2] = nodes;
-
-        let ind_tri0 = self.add_empty_triangle();
-        let ind_tri1 = self.add_empty_triangle();
-
-        let [h01, h12, h20] = self.set_triangle(ind_tri0, n0, n1, n2);
-        let [h02, h21, h10] = self.set_triangle(ind_tri1, n0, n2, n1);
-
-        self.oppose_halfedges(h01, h10);
-        self.oppose_halfedges(h12, h21);
-        self.oppose_halfedges(h20, h02);
-
-        Ok([ind_tri0, ind_tri1])
-    }
-
-    /// Inserts a new node in a triangle
-    pub fn insert_node_within_triangle(
-        &mut self,
-        node: usize,
-        ind_tri: usize,
-    ) -> Result<[usize; 3]> {
-        let [n0, n1, n2] = self.triangle_node_values(ind_tri);
-        let [h01, h12, h20] = self.triangle_halfedge_indices(ind_tri);
-        let h10 = self.halfedge_opposite_index(h01);
-        let h21 = self.halfedge_opposite_index(h12);
-        let h02 = self.halfedge_opposite_index(h20);
-
-        let ind_tri0 = self.unset_triangle(ind_tri);
-        let ind_tri1 = self.add_empty_triangle();
-        let ind_tri2 = self.add_empty_triangle();
-
-        let [h01, h1n, hn0] = self.set_triangle(ind_tri0, n0, n1, node);
-        let [h12, h2n, hn1] = self.set_triangle(ind_tri1, n1, n2, node);
-        let [h20, h0n, hn2] = self.set_triangle(ind_tri2, n2, n0, node);
-
-        self.oppose_halfedges(h10, h01);
-        self.oppose_halfedges(h12, h21);
-        self.oppose_halfedges(h20, h02);
-
-        self.oppose_halfedges(h0n, hn0);
-        self.oppose_halfedges(h1n, hn1);
-        self.oppose_halfedges(h2n, hn2);
-
-        Ok([ind_tri, self.nb_triangles - 2, self.nb_triangles - 1])
-    }
-
-    /// Flips halfedge
-    pub fn flip_halfedge(&mut self, ind_he: usize) -> Result<[usize; 2]> {
-        let ind_he_opp = self.halfedge_opposite_index(ind_he);
-
-        // ind_he is ca
-        let hab = self.halfedge_next_index(ind_he);
-        let hbc = self.halfedge_previous_index(ind_he);
-
-        // ind_he_opp is ac
-        let hcd = self.halfedge_next_index(ind_he_opp);
-        let hda = self.halfedge_previous_index(ind_he_opp);
-
-        let na = self.halfedge_first_node_value(hab);
-        let nb = self.halfedge_first_node_value(hbc);
-        let nc = self.halfedge_first_node_value(hcd);
-        let nd = self.halfedge_first_node_value(hda);
-
-        let hba = self.halfedge_opposite_index(hab);
-        let hcb = self.halfedge_opposite_index(hbc);
-        let hdc = self.halfedge_opposite_index(hcd);
-        let had = self.halfedge_opposite_index(hda);
-
-        let ind_tri1 = self.halfedge_triangle_index(ind_he);
-        let ind_tri2 = self.halfedge_triangle_index(ind_he_opp);
-
-        let [hbc, hcd, hdb] = self.set_triangle(ind_tri1, nb, nc, nd);
-        let [hda, hab, hbd] = self.set_triangle(ind_tri2, nd, na, nb);
-
-        self.oppose_halfedges(hab, hba);
-        self.oppose_halfedges(hbc, hcb);
-        self.oppose_halfedges(hcd, hdc);
-        self.oppose_halfedges(hda, had);
-
-        self.oppose_halfedges(hbd, hdb);
-
-        Ok([hbd, hdb])
-    }
-
-    /// Builds full simplicial from set of triangles
-    pub fn insert_triangle_list(&mut self, triangles: Vec<[usize; 3]>) -> Result<()> {
-        if self.get_nb_triangles() != 0 {
-            return Err(anyhow::Error::msg("Simplicial should be empty"));
-        }
-        for &[nod0, nod1, nod2] in triangles.iter() {
-            let ind_tri = self.add_empty_triangle();
-            self.set_triangle(ind_tri, nod0, nod1, nod2);
-        }
-
-        let mut to_attribute: Vec<usize> = (0..self.get_nb_halfedges()).collect();
-        while let Some(ind_he) = to_attribute.pop() {
-            let n0 = self.halfedge_first_node_value(ind_he);
-            let n1 = self.halfedge_last_node_value(ind_he);
-            let mut found = false;
-            for i in 0..to_attribute.len() {
-                let ind_he_opp = to_attribute[i];
-                let n0o = self.halfedge_first_node_value(ind_he_opp);
-                let n1o = self.halfedge_last_node_value(ind_he_opp);
-                if n0 == n1o && n1 == n0o {
-                    self.oppose_halfedges(ind_he, ind_he_opp);
-                    to_attribute.remove(i);
-                    found = true;
-                    break;
-                }
-            }
-            if !found {
-                return Err(anyhow::Error::msg(
-                    "Given faces do not form a manifold self",
-                ));
-            }
-        }
-
-        Ok(())
     }
 
     /// Println each triangle of the graph

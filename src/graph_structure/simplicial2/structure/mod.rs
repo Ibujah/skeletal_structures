@@ -25,3 +25,6 @@ pub use iter_diagram_halfedge_2::IterDiagHalfEdge2;
 /// Node iterator on diagram dual of 2D simplicial
 mod iter_diagram_node_2;
 pub use iter_diagram_node_2::IterDiagNode2;
+
+mod simplicial_2_update;
+pub use simplicial_2_update::*;
