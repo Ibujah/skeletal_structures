@@ -1,6 +1,6 @@
 use super::{
-    iter_halftriangle_3::XOR_TRIANGLE_SUBINDICES, simplicial_3::ShiftType, IterHalfTriangle3,
-    IterNode3, IterTetrahedron3, Simplicial3,
+    iter_halftriangle_3::XOR_TRIANGLE_SUBINDICES, IterHalfTriangle3, IterNode3, IterTetrahedron3,
+    Simplicial3,
 };
 
 #[derive(Copy, Clone)]
@@ -125,19 +125,18 @@ impl<'a> IterHalfEdge3<'a> {
         let ind_halftriangle = self.ind_first ^ self.xor0;
         let ind_halftriangle_opposite = self.simplicial.get_halftriangle_opposite(ind_halftriangle);
 
-        let (new_xor0, new_xor1, new_xor2) =
-            match self.simplicial.halftriangle_shift[ind_halftriangle] {
-                ShiftType::ABC2BAC => (self.xor2, self.xor1, self.xor0),
-                ShiftType::ABC2CBA => (self.xor1, self.xor0, self.xor2),
-                ShiftType::ABC2ACB => (self.xor0, self.xor2, self.xor1),
-                ShiftType::Unset => panic!(),
-            };
+        let (new_xor0, new_xor1, new_xor2) = self.simplicial.get_opposite_xor(
+            &self.simplicial.halftriangle_shift[ind_halftriangle],
+            self.xor0,
+            self.xor1,
+            self.xor2,
+        );
         IterHalfEdge3::new(
             &self.simplicial,
             ind_halftriangle_opposite,
-            4 - new_xor0,
-            4 - new_xor1,
-            4 - new_xor2,
+            new_xor0,
+            new_xor1,
+            new_xor2,
         )
     }
 

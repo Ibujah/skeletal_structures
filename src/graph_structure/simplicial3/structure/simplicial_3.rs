@@ -7,13 +7,9 @@ use super::IterHalfTriangle3;
 use super::IterNode3;
 use super::IterTetrahedron3;
 
-#[derive(Copy, Clone)]
-pub(super) enum ShiftType {
-    ABC2ACB = 0,
-    ABC2BAC = 1,
-    ABC2CBA = 2,
-    Unset = 3,
-}
+pub(super) const ABC2BAC: usize = 2;
+pub(super) const ABC2CBA: usize = 1;
+pub(super) const ABC2ACB: usize = 0;
 
 /// 3D Simplicial structure
 pub struct Simplicial3 {
@@ -29,7 +25,7 @@ pub struct Simplicial3 {
     /// For each halftriangle, index of opposite halftriangle
     pub(super) halftriangle_opposite: Vec<usize>,
     /// Three kind if shifts, to associate halfedges between each halftriangle
-    pub(super) halftriangle_shift: Vec<ShiftType>,
+    pub(super) halftriangle_shift: Vec<usize>,
 
     /// Number of tetrahedra
     pub(super) nb_tetrahedra: usize,
@@ -64,7 +60,7 @@ impl Simplicial3 {
         self.halftriangle_opposite
             .resize(self.halftriangle_opposite.len() + 4, 0);
         self.halftriangle_shift
-            .resize(self.halftriangle_shift.len() + 4, ShiftType::Unset);
+            .resize(self.halftriangle_shift.len() + 4, 3);
 
         self.nb_tetrahedra = self.nb_tetrahedra + 1;
 
@@ -89,10 +85,10 @@ impl Simplicial3 {
         self.halftriangle_opposite[ind_first + 2] = 0;
         self.halftriangle_opposite[ind_first + 3] = 0;
 
-        self.halftriangle_shift[ind_first] = ShiftType::Unset;
-        self.halftriangle_shift[ind_first + 1] = ShiftType::Unset;
-        self.halftriangle_shift[ind_first + 2] = ShiftType::Unset;
-        self.halftriangle_shift[ind_first + 3] = ShiftType::Unset;
+        self.halftriangle_shift[ind_first] = 3;
+        self.halftriangle_shift[ind_first + 1] = 3;
+        self.halftriangle_shift[ind_first + 2] = 3;
+        self.halftriangle_shift[ind_first + 3] = 3;
 
         if let Some(vec) = self.node_positions.as_mut() {
             vec[nod0].retain(|&x| x >> 2 != ind_tet);
@@ -187,12 +183,7 @@ impl Simplicial3 {
         Ok(())
     }
 
-    pub(super) fn oppose_halftriangles(
-        &mut self,
-        htri0: usize,
-        htri1: usize,
-        shift_tri: ShiftType,
-    ) {
+    pub(super) fn oppose_halftriangles(&mut self, htri0: usize, htri1: usize, shift_tri: usize) {
         self.halftriangle_opposite[htri0] = htri1;
         self.halftriangle_opposite[htri1] = htri0;
         self.halftriangle_shift[htri0] = shift_tri;
@@ -206,26 +197,12 @@ impl Simplicial3 {
         let [a, _, _] = tri0.node_values();
         let [d, e, f] = tri1.node_values();
 
-        // let n0 = IterHalfTriangle3::new(self, htri0).node_values();
-        // let n1 = IterHalfTriangle3::new(self, htri1).node_values();
-        // log::info!(
-        //     "Oppose auto: {} [{}, {}, {}] and {} [{}, {}, {}]",
-        //     htri0,
-        //     n0[0],
-        //     n0[1],
-        //     n0[2],
-        //     htri1,
-        //     n1[0],
-        //     n1[1],
-        //     n1[2],
-        // );
-
         let shift = if a == d {
-            ShiftType::ABC2ACB
+            ABC2ACB
         } else if a == e {
-            ShiftType::ABC2BAC
+            ABC2BAC
         } else if a == f {
-            ShiftType::ABC2CBA
+            ABC2CBA
         } else {
             return Err(anyhow::Error::msg("Faces are not opposite"));
         };
@@ -235,6 +212,19 @@ impl Simplicial3 {
         Ok(())
     }
 
+    pub(super) fn get_opposite_xor(
+        &self,
+        shift: &usize,
+        xor0: usize,
+        xor1: usize,
+        xor2: usize,
+    ) -> (usize, usize, usize) {
+        (
+            ((xor0 + xor0 + shift) % 3) + 1,
+            ((xor1 + xor0 + shift) % 3) + 1,
+            ((xor2 + xor0 + shift) % 3) + 1,
+        )
+    }
     ///////////////////////////
     /// Public find methods ///
     ///////////////////////////
@@ -406,10 +396,10 @@ impl Simplicial3 {
         let [t321, t230, t103, t012] = self.set_tetrahedron(ind_tet0, n0, n1, n2, n3);
         let [t032, t301, t210, t123] = self.set_tetrahedron(ind_tet1, n1, n2, n3, n0);
 
-        self.oppose_halftriangles(t321, t123, ShiftType::ABC2CBA);
-        self.oppose_halftriangles(t230, t032, ShiftType::ABC2CBA);
-        self.oppose_halftriangles(t103, t301, ShiftType::ABC2CBA);
-        self.oppose_halftriangles(t012, t210, ShiftType::ABC2CBA);
+        self.oppose_halftriangles(t321, t123, ABC2CBA);
+        self.oppose_halftriangles(t230, t032, ABC2CBA);
+        self.oppose_halftriangles(t103, t301, ABC2CBA);
+        self.oppose_halftriangles(t012, t210, ABC2CBA);
 
         Ok([ind_tet0, ind_tet1])
     }

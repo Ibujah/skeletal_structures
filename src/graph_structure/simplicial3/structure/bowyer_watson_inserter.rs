@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-use crate::graph_structure::simplicial3::structure::simplicial_3::ShiftType;
+use crate::graph_structure::simplicial3::structure::simplicial_3::ABC2BAC;
 
 use super::{IterHalfTriangle3, IterTetrahedron3, Simplicial3};
 
@@ -54,14 +54,6 @@ impl BowyerWatsonInserter {
                 {
                     let ind_first = ind_tetra << 2;
                     self.ind_tetra_cur = Some(ind_tetra);
-                    // log::info!(
-                    //     "checking tetra: {}, [{}, {}, {}, {}]",
-                    //     ind_tetra,
-                    //     self.simplicial.tet_nodes[ind_first],
-                    //     self.simplicial.tet_nodes[ind_first + 1],
-                    //     self.simplicial.tet_nodes[ind_first + 2],
-                    //     self.simplicial.tet_nodes[ind_first + 3],
-                    // );
                     return Some([
                         simplicial.tet_nodes[ind_first],
                         simplicial.tet_nodes[ind_first + 1],
@@ -269,7 +261,7 @@ impl BowyerWatsonInserter {
             let ind_tri_nei = vec_tri[i];
             let ind_tri_0 = ind_cur_tetra << 2;
 
-            simplicial.oppose_halftriangles(ind_tri_0, ind_tri_nei, ShiftType::ABC2BAC);
+            simplicial.oppose_halftriangles(ind_tri_0, ind_tri_nei, ABC2BAC);
 
             for j in 0..3 {
                 let (ind_nei_j, subind_nei_j) = vec_nei[i][j];
