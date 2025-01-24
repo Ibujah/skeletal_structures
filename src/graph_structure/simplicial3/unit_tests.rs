@@ -5,7 +5,8 @@ mod simplicial3_test {
     use rstest::rstest;
 
     use crate::graph_structure::simplicial3::{
-        simplicial3_is_valid, BowyerWatsonInserter, IterHalfTriangle3, Simplicial3,
+        first_tetrahedron, simplicial3_is_valid, BowyerWatsonInserter, IterHalfTriangle3,
+        Simplicial3,
     };
 
     fn test_triangle(triabc: IterHalfTriangle3, a: usize, b: usize, c: usize) -> () {
@@ -56,7 +57,7 @@ mod simplicial3_test {
     ) -> Result<()> {
         let mut simpl = Simplicial3::new(false);
 
-        let [ind_tetra0, _] = simpl.first_tetrahedron([n0, n1, n2, n3])?;
+        let [ind_tetra0, _] = first_tetrahedron(&mut simpl, [n0, n1, n2, n3])?;
 
         let tetra0 = simpl.get_tetrahedron_from_index(ind_tetra0)?;
 
@@ -88,7 +89,7 @@ mod simplicial3_test {
     ) -> Result<()> {
         let mut simpl = Simplicial3::new(register_node_halfedges);
 
-        simpl.first_tetrahedron([n0, n1, n2, n3])?;
+        first_tetrahedron(&mut simpl, [n0, n1, n2, n3])?;
 
         let nod1 = if let Some(nod) = simpl.find_node(n1) {
             nod
@@ -152,7 +153,7 @@ mod simplicial3_test {
         let mut rng = rand::thread_rng();
 
         let mut simpl = Simplicial3::new(false);
-        simpl.first_tetrahedron([0, 1, 2, 3])?;
+        first_tetrahedron(&mut simpl, [0, 1, 2, 3])?;
 
         let mut bw_inserter = BowyerWatsonInserter::new(&simpl);
         for ind_nod in 4..10 {

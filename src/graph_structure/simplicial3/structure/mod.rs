@@ -21,3 +21,7 @@ pub use iter_tetrahedron_3::IterTetrahedron3;
 /// Bowyer-Watson algorithm for 3D simplicial
 mod bowyer_watson_inserter;
 pub use bowyer_watson_inserter::BowyerWatsonInserter;
+
+/// Build function for 3D simplicial
+mod build_simplicial_3;
+pub use build_simplicial_3::*;

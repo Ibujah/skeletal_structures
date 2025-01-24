@@ -1,8 +1,10 @@
 use anyhow::Result;
 
-use crate::graph_structure::simplicial3::structure::simplicial_3::ABC2BAC;
-
-use super::{IterHalfTriangle3, IterTetrahedron3, Simplicial3};
+use super::{
+    add_empty_tetrahedron, oppose_halftriangles, oppose_halftriangles_auto, remove_tetrahedron,
+    set_tetrahedron, simplicial_3::ABC2BAC, unset_tetrahedron, IterHalfTriangle3, IterTetrahedron3,
+    Simplicial3,
+};
 
 /// Bowyer Watson algorithm to insert a node in a simplicial3 structure
 pub struct BowyerWatsonInserter {
@@ -242,15 +244,15 @@ impl BowyerWatsonInserter {
 
             let ind_tet = if let Some(ind_tet_replace) = self.tet_to_rem.pop() {
                 self.should_rem_tet[ind_tet_replace] = false;
-                simplicial.unset_tetrahedron(ind_tet_replace);
+                unset_tetrahedron(simplicial, ind_tet_replace);
                 ind_tet_replace
             } else {
                 self.should_keep_tet.push(false);
                 self.should_rem_tet.push(false);
-                simplicial.add_empty_tetrahedron()
+                add_empty_tetrahedron(simplicial)
             };
 
-            simplicial.set_tetrahedron(ind_tet, node, nod2, nod0, nod1);
+            set_tetrahedron(simplicial, ind_tet, node, nod2, nod0, nod1);
             added_tets.push(ind_tet);
         }
 
@@ -261,7 +263,7 @@ impl BowyerWatsonInserter {
             let ind_tri_nei = vec_tri[i];
             let ind_tri_0 = ind_cur_tetra << 2;
 
-            simplicial.oppose_halftriangles(ind_tri_0, ind_tri_nei, ABC2BAC);
+            oppose_halftriangles(simplicial, ind_tri_0, ind_tri_nei, ABC2BAC);
 
             for j in 0..3 {
                 let (ind_nei_j, subind_nei_j) = vec_nei[i][j];
@@ -273,7 +275,7 @@ impl BowyerWatsonInserter {
                     let ind_tri_nei_j = tetraj.halftriangles()[subind_nei_j + 1].ind();
                     let ind_tri_j = ind_tri_0 + 1 + j;
 
-                    simplicial.oppose_halftriangles_auto(ind_tri_j, ind_tri_nei_j)?;
+                    oppose_halftriangles_auto(simplicial, ind_tri_j, ind_tri_nei_j)?;
                 }
             }
         }
@@ -294,7 +296,7 @@ impl BowyerWatsonInserter {
         self.tet_to_rem.sort();
 
         while let Some(ind_tet_remove) = self.tet_to_rem.pop() {
-            simplicial.remove_tetrahedron(ind_tet_remove)?;
+            remove_tetrahedron(simplicial, ind_tet_remove)?;
         }
 
         Ok(())
