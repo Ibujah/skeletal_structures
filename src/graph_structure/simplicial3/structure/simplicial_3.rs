@@ -51,7 +51,7 @@ impl Simplicial3 {
 
     pub(super) fn get_opposite_xor(
         &self,
-        shift: &usize,
+        shift: usize,
         xor0: usize,
         xor1: usize,
         xor2: usize,

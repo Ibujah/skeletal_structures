@@ -126,7 +126,7 @@ impl<'a> IterHalfEdge3<'a> {
         let ind_halftriangle_opposite = self.simplicial.get_halftriangle_opposite(ind_halftriangle);
 
         let (new_xor0, new_xor1, new_xor2) = self.simplicial.get_opposite_xor(
-            &self.simplicial.halftriangle_shift[ind_halftriangle],
+            self.simplicial.halftriangle_shift[ind_halftriangle],
             self.xor0,
             self.xor1,
             self.xor2,
